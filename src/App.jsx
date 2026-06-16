@@ -56,14 +56,9 @@ async function sbFetch(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-// localStorage for private user data, Supabase for shared/community data
+// All data stored in Supabase — works across devices
 async function storeGet(key, shared = false) {
   try {
-    if (!shared) {
-      const val = localStorage.getItem(`florece_${key}`);
-      return val ? JSON.parse(val) : null;
-    }
-    // shared = Supabase
     const data = await sbFetch(`florece_store?key=eq.${encodeURIComponent(key)}&select=value`);
     return data && data[0] ? JSON.parse(data[0].value) : null;
   } catch { return null; }
@@ -71,14 +66,8 @@ async function storeGet(key, shared = false) {
 
 async function storeSet(key, val, shared = false) {
   try {
-    if (!shared) {
-      localStorage.setItem(`florece_${key}`, JSON.stringify(val));
-      return;
-    }
-    // shared = Supabase upsert
     await sbFetch(`florece_store`, {
       method: "POST",
-      prefer: "resolution=merge-duplicates",
       headers: { "Prefer": "resolution=merge-duplicates" },
       body: JSON.stringify({ key, value: JSON.stringify(val) })
     });
@@ -1572,7 +1561,7 @@ export default function FloreceApp() {
   };
 
   const handleLogout = async () => {
-    try { localStorage.removeItem('florece_session:current'); } catch {}
+    await sbFetch(`florece_store?key=eq.session%3Acurrent`, { method: 'DELETE' }).catch(()=>{});
     setUser(null);
     setTab("home");
   };
