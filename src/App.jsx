@@ -36,12 +36,53 @@ function Cayena({ size = 36, color = "white", glow = false }) {
 }
 
 // ─── STORAGE HELPERS ───
-async function storeGet(key, shared = false) {
-  try { const r = await window.storage.get(key, shared); return r ? JSON.parse(r.value) : null; }
-  catch { return null; }
+// ─── SUPABASE CONFIG ───
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": options.prefer || "",
+      ...options.headers
+    }
+  });
+  if (!res.ok) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
 }
+
+// localStorage for private user data, Supabase for shared/community data
+async function storeGet(key, shared = false) {
+  try {
+    if (!shared) {
+      const val = localStorage.getItem(`florece_${key}`);
+      return val ? JSON.parse(val) : null;
+    }
+    // shared = Supabase
+    const data = await sbFetch(`florece_store?key=eq.${encodeURIComponent(key)}&select=value`);
+    return data && data[0] ? JSON.parse(data[0].value) : null;
+  } catch { return null; }
+}
+
 async function storeSet(key, val, shared = false) {
-  try { await window.storage.set(key, JSON.stringify(val), shared); } catch {}
+  try {
+    if (!shared) {
+      localStorage.setItem(`florece_${key}`, JSON.stringify(val));
+      return;
+    }
+    // shared = Supabase upsert
+    await sbFetch(`florece_store`, {
+      method: "POST",
+      prefer: "resolution=merge-duplicates",
+      headers: { "Prefer": "resolution=merge-duplicates" },
+      body: JSON.stringify({ key, value: JSON.stringify(val) })
+    });
+  } catch {}
 }
 
 // ─── AI AFFIRMATION via Claude ───
@@ -1328,27 +1369,25 @@ function ComunidadScreen({ user, showToast, onOpenModal }) {
 
   const loadPosts = async () => {
     setLoadingPosts(true);
-    const keys = await window.storage.list("post:", true).catch(()=>({keys:[]}));
-    const loaded = [];
-    for (const key of (keys.keys||[]).slice(-30).reverse()) {
-      const p = await storeGet(key, true);
-      if (p) loaded.push({ ...p, key });
-    }
-    // seed initial post if empty
-    if (loaded.length === 0) {
-      const seed = { id:`post:${Date.now()}`, author:"Eri · Florece", avatar:"🌺", text:"¡Bienvenidas a Florece! Este es nuestro espacio sagrado. Aquí no hay competencia, solo apoyo. Comparte lo que sientes, lo que aprendes, lo que celebras. El viaje empieza hoy. 💜", timestamp: Date.now(), likes:[], comments:[] };
-      await storeSet(seed.id, seed, true);
-      loaded.push(seed);
-    }
-    setPosts(loaded);
+    try {
+      const data = await sbFetch(`florece_posts?select=*&order=timestamp.desc&limit=50`);
+      const loaded = data || [];
+      if (loaded.length === 0) {
+        // Seed welcome post
+        const seed = { id:`post_${Date.now()}`, author:"Eri · Florece", avatar:"🌺", text:"¡Bienvenidas a Florece! Este es nuestro espacio sagrado. Aquí no hay competencia, solo apoyo. Comparte lo que sientes, lo que aprendes, lo que celebras. El viaje empieza hoy. 💜", timestamp: Date.now(), likes:[], comments:[] };
+        await sbFetch(`florece_posts`, { method:"POST", prefer:"return=minimal", headers:{"Prefer":"return=minimal"}, body: JSON.stringify(seed) });
+        loaded.push(seed);
+      }
+      setPosts(loaded);
+    } catch { setPosts([]); }
     setLoadingPosts(false);
   };
 
   const publish = async () => {
     if (!newPost.trim() || posting) return;
     setPosting(true);
-    const post = { id:`post:${Date.now()}`, author:user.name, avatar:"🌸", text:newPost.trim(), timestamp:Date.now(), likes:[], comments:[] };
-    await storeSet(post.id, post, true);
+    const post = { id:`post_${Date.now()}`, author:user.name, avatar:"🌸", text:newPost.trim(), timestamp:Date.now(), likes:[], comments:[] };
+    await sbFetch(`florece_posts`, { method:"POST", prefer:"return=minimal", headers:{"Prefer":"return=minimal"}, body: JSON.stringify(post) });
     setNewPost("");
     setShowForm(false);
     setPosting(false);
@@ -1359,8 +1398,7 @@ function ComunidadScreen({ user, showToast, onOpenModal }) {
   const toggleLike = async (post) => {
     const already = post.likes?.includes(user.email);
     const newLikes = already ? post.likes.filter(e=>e!==user.email) : [...(post.likes||[]), user.email];
-    const updated = { ...post, likes: newLikes };
-    await storeSet(post.key||post.id, updated, true);
+    await sbFetch(`florece_posts?id=eq.${post.id}`, { method:"PATCH", headers:{"Prefer":"return=minimal"}, body: JSON.stringify({ likes: newLikes }) });
     setPosts(ps => ps.map(p=>(p.id===post.id?{...p,likes:newLikes}:p)));
   };
 
@@ -1518,7 +1556,7 @@ export default function FloreceApp() {
 
   useEffect(() => {
     const check = async () => {
-      const saved = await storeGet("session:current");
+      const saved = await storeGet('session:current');
       if (saved) {
         const u = await storeGet(`user:${saved}`);
         if (u) setUser(u);
@@ -1534,7 +1572,7 @@ export default function FloreceApp() {
   };
 
   const handleLogout = async () => {
-    await window.storage.delete("session:current").catch(()=>{});
+    try { localStorage.removeItem('florece_session:current'); } catch {}
     setUser(null);
     setTab("home");
   };
