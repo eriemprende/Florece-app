@@ -66,12 +66,25 @@ async function storeGet(key, shared = false) {
 
 async function storeSet(key, val, shared = false) {
   try {
+    // Use upsert — inserts if not exists, updates if exists
     await sbFetch(`florece_store`, {
       method: "POST",
-      headers: { "Prefer": "resolution=merge-duplicates" },
+      headers: { 
+        "Prefer": "resolution=merge-duplicates,return=minimal",
+        "on_conflict": "key"
+      },
       body: JSON.stringify({ key, value: JSON.stringify(val) })
     });
-  } catch {}
+  } catch(e) {
+    // Fallback: try PATCH if POST fails
+    try {
+      await sbFetch(`florece_store?key=eq.${encodeURIComponent(key)}`, {
+        method: "PATCH",
+        headers: { "Prefer": "return=minimal" },
+        body: JSON.stringify({ value: JSON.stringify(val) })
+      });
+    } catch {}
+  }
 }
 
 // ─── AI AFFIRMATION via Claude ───
@@ -1561,7 +1574,7 @@ export default function FloreceApp() {
   };
 
   const handleLogout = async () => {
-    await sbFetch(`florece_store?key=eq.session%3Acurrent`, { method: 'DELETE' }).catch(()=>{});
+    await sbFetch(`florece_store?key=eq.${encodeURIComponent('session:current')}`, { method: 'DELETE' }).catch(()=>{});
     setUser(null);
     setTab("home");
   };
