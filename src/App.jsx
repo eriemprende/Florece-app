@@ -1545,6 +1545,219 @@ function PerfilScreen({ user, onLogout }) {
   );
 }
 
+
+// ═══════════════════════════════════════
+// SCREEN: DASHBOARD ADMIN
+// ═══════════════════════════════════════
+const ADMIN_EMAIL = "eri@florece.app"; // ← cambia esto a tu email real
+
+function DashboardScreen({ user }) {
+  const [stats, setStats] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("overview");
+
+  useEffect(() => { loadData(); }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      // Load all store entries (users)
+      const storeData = await sbFetch(`florece_store?select=key,value&order=key`) || [];
+      const userEntries = storeData.filter(r => r.key.startsWith("user:"));
+      const parsedUsers = userEntries.map(r => {
+        try { return JSON.parse(r.value); } catch { return null; }
+      }).filter(Boolean);
+      setUsers(parsedUsers);
+
+      // Load all posts
+      const postsData = await sbFetch(`florece_posts?select=*&order=timestamp.desc`) || [];
+      setPosts(postsData);
+
+      // Calculate stats
+      const now = Date.now();
+      const oneDayAgo = now - 86400000;
+      const sevenDaysAgo = now - 604800000;
+      const thirtyDaysAgo = now - 2592000000;
+
+      setStats({
+        totalUsers: parsedUsers.length,
+        activeToday: parsedUsers.filter(u => u.lastPractice && u.lastPractice > oneDayAgo).length,
+        activeWeek: parsedUsers.filter(u => u.lastPractice && u.lastPractice > sevenDaysAgo).length,
+        activeMonth: parsedUsers.filter(u => u.lastPractice && u.lastPractice > thirtyDaysAgo).length,
+        totalPosts: postsData.length,
+        postsToday: postsData.filter(p => p.timestamp > oneDayAgo).length,
+        postsWeek: postsData.filter(p => p.timestamp > sevenDaysAgo).length,
+        avgStreak: parsedUsers.length ? Math.round(parsedUsers.reduce((a,u) => a+(u.streak||0), 0) / parsedUsers.length) : 0,
+        avgPoints: parsedUsers.length ? Math.round(parsedUsers.reduce((a,u) => a+(u.points||0), 0) / parsedUsers.length) : 0,
+        retoCompleted: parsedUsers.filter(u => (u.completedDays||[]).length >= 7).length,
+        levels: {
+          "Semilla 🌱": parsedUsers.filter(u => u.level === "Semilla 🌱").length,
+          "Flor 🌺": parsedUsers.filter(u => u.level === "Flor 🌺").length,
+          "Brote 🌿": parsedUsers.filter(u => u.level === "Brote 🌿").length,
+          "Mariposa 🦋": parsedUsers.filter(u => u.level === "Mariposa 🦋").length,
+        },
+        totalLikes: postsData.reduce((a,p) => a+(p.likes?.length||0), 0),
+      });
+    } catch(e) { console.error(e); }
+    setLoading(false);
+  };
+
+  const timeAgo = (ts) => {
+    if (!ts) return "nunca";
+    const mins = Math.floor((Date.now()-ts)/60000);
+    if (mins < 60) return `hace ${mins}m`;
+    if (mins < 1440) return `hace ${Math.floor(mins/60)}h`;
+    return `hace ${Math.floor(mins/1440)}d`;
+  };
+
+  const StatCard = ({ emoji, label, value, sub, color="#5B2D8E" }) => (
+    <div style={{ background:C.blanco, borderRadius:16, padding:"16px 14px", boxShadow:"0 2px 14px rgba(0,0,0,0.05)", border:`1.5px solid rgba(91,45,142,0.08)` }}>
+      <div style={{ fontSize:24, marginBottom:6 }}>{emoji}</div>
+      <div style={{ fontFamily:"Georgia,serif", fontSize:28, fontWeight:400, color, lineHeight:1 }}>{value}</div>
+      <div style={{ fontSize:12, fontWeight:600, color:C.carbon, margin:"4px 0 2px" }}>{label}</div>
+      {sub && <div style={{ fontSize:11, color:C.gris }}>{sub}</div>}
+    </div>
+  );
+
+  if (loading) return (
+    <div style={{ padding:"60px 20px", textAlign:"center" }}>
+      <div style={{ fontSize:40, marginBottom:16 }}>📊</div>
+      <p style={{ color:C.gris, fontFamily:"Georgia,serif", fontStyle:"italic" }}>Cargando datos de Florece...</p>
+    </div>
+  );
+
+  const tabStyle = (t) => ({
+    background: activeTab===t ? C.violeta : C.blanco,
+    color: activeTab===t ? "white" : C.gris,
+    border: `1px solid ${activeTab===t ? C.violeta : "rgba(91,45,142,0.2)"}`,
+    borderRadius: 50, padding: "7px 14px", fontSize: 12,
+    cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0
+  });
+
+  return (
+    <div style={{ padding:"20px 20px 90px" }}>
+      {/* HEADER */}
+      <div style={{ background:`linear-gradient(135deg,${C.carbon},#2D1845)`, borderRadius:22, padding:"22px 20px", color:"white", marginBottom:20 }}>
+        <p style={{ fontSize:11, color:C.dorado, letterSpacing:2, textTransform:"uppercase", margin:"0 0 6px" }}>Panel de Control</p>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:24, fontWeight:300, margin:"0 0 4px" }}>Dashboard Florece 🌺</h2>
+        <p style={{ fontSize:12, color:"rgba(255,255,255,0.5)", margin:"0 0 14px" }}>Última actualización: {new Date().toLocaleString("es-ES")}</p>
+        <button onClick={loadData} style={{ background:"rgba(255,255,255,0.1)", border:"1px solid rgba(255,255,255,0.2)", borderRadius:50, padding:"7px 16px", fontSize:12, color:"white", cursor:"pointer", fontFamily:"inherit" }}>
+          🔄 Actualizar datos
+        </button>
+      </div>
+
+      {/* TABS */}
+      <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:8, marginBottom:20 }}>
+        {[["overview","📊 Resumen"],["users","👥 Usuarias"],["community","💜 Comunidad"]].map(([t,l]) => (
+          <button key={t} onClick={()=>setActiveTab(t)} style={tabStyle(t)}>{l}</button>
+        ))}
+      </div>
+
+      {/* OVERVIEW TAB */}
+      {activeTab === "overview" && stats && (
+        <div>
+          <h3 style={{ fontFamily:"Georgia,serif", fontSize:18, margin:"0 0 12px", fontWeight:400 }}>👥 Usuarias</h3>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
+            <StatCard emoji="🌺" label="Total usuarias" value={stats.totalUsers} sub="registradas" color={C.violeta}/>
+            <StatCard emoji="🔥" label="Activas hoy" value={stats.activeToday} sub="practicaron hoy" color="#E53935"/>
+            <StatCard emoji="📅" label="Esta semana" value={stats.activeWeek} sub="activas 7 días" color={C.dorado}/>
+            <StatCard emoji="🦋" label="Reto completo" value={stats.retoCompleted} sub="7 días terminados" color="#4CAF80"/>
+          </div>
+
+          <h3 style={{ fontFamily:"Georgia,serif", fontSize:18, margin:"0 0 12px", fontWeight:400 }}>📈 Engagement</h3>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
+            <StatCard emoji="⭐" label="Puntos promedio" value={stats.avgPoints} sub="por usuaria" color={C.dorado}/>
+            <StatCard emoji="🔥" label="Racha promedio" value={`${stats.avgStreak}d`} sub="días consecutivos" color="#FF7043"/>
+            <StatCard emoji="💬" label="Posts totales" value={stats.totalPosts} sub="en comunidad" color={C.violetaClaro}/>
+            <StatCard emoji="💜" label="Likes totales" value={stats.totalLikes} sub="en la comunidad" color="#E91E8C"/>
+          </div>
+
+          <h3 style={{ fontFamily:"Georgia,serif", fontSize:18, margin:"0 0 12px", fontWeight:400 }}>🌱 Niveles de crecimiento</h3>
+          <div style={{ background:C.blanco, borderRadius:18, padding:18, boxShadow:"0 2px 14px rgba(0,0,0,0.05)" }}>
+            {Object.entries(stats.levels).map(([level, count]) => {
+              const pct = stats.totalUsers > 0 ? Math.round((count/stats.totalUsers)*100) : 0;
+              return (
+                <div key={level} style={{ marginBottom:14 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                    <span style={{ fontSize:13, fontWeight:500 }}>{level}</span>
+                    <span style={{ fontSize:13, color:C.violeta, fontWeight:600 }}>{count} usuarias · {pct}%</span>
+                  </div>
+                  <div style={{ height:6, background:"rgba(91,45,142,0.1)", borderRadius:10, overflow:"hidden" }}>
+                    <div style={{ height:"100%", width:`${pct}%`, background:`linear-gradient(90deg,${C.violetaClaro},${C.dorado})`, borderRadius:10, transition:"width 0.8s" }}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* USERS TAB */}
+      {activeTab === "users" && (
+        <div>
+          <p style={{ fontSize:13, color:C.gris, margin:"0 0 14px" }}>{users.length} usuarias registradas en Florece</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {users.sort((a,b) => (b.points||0)-(a.points||0)).map((u,i) => (
+              <div key={u.email} style={{ background:C.blanco, borderRadius:16, padding:"14px 16px", boxShadow:"0 2px 10px rgba(0,0,0,0.04)", border:"1.5px solid rgba(91,45,142,0.07)" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+                  <div style={{ width:36, height:36, borderRadius:"50%", background:`linear-gradient(135deg,${C.violetaClaro},${C.dorado})`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0 }}>
+                    {i===0?"🥇":i===1?"🥈":i===2?"🥉":"🌸"}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <p style={{ fontWeight:600, fontSize:14, margin:0, color:C.carbon }}>{u.name}</p>
+                    <p style={{ fontSize:11, color:C.gris, margin:0 }}>{u.email}</p>
+                  </div>
+                  <span style={{ fontSize:11, background:C.violetaSuave, color:C.violeta, padding:"3px 8px", borderRadius:20, fontWeight:600 }}>{u.level||"Semilla 🌱"}</span>
+                </div>
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  <span style={{ fontSize:11, background:"rgba(201,160,80,0.12)", color:"#8B6020", padding:"3px 8px", borderRadius:20 }}>⭐ {u.points||0} pts</span>
+                  <span style={{ fontSize:11, background:"rgba(255,112,67,0.1)", color:"#E64A19", padding:"3px 8px", borderRadius:20 }}>🔥 {u.streak||0} días</span>
+                  <span style={{ fontSize:11, background:"rgba(76,175,128,0.1)", color:"#2E7D52", padding:"3px 8px", borderRadius:20 }}>🎯 {(u.completedDays||[]).length}/7 reto</span>
+                  <span style={{ fontSize:11, color:C.gris, padding:"3px 0" }}>Última práctica: {timeAgo(u.lastPractice)}</span>
+                </div>
+              </div>
+            ))}
+            {users.length === 0 && (
+              <div style={{ textAlign:"center", padding:40, color:C.gris }}>
+                <p style={{ fontFamily:"Georgia,serif", fontStyle:"italic" }}>Aún no hay usuarias registradas.</p>
+                <p style={{ fontSize:13 }}>¡Comparte el link de Florece! 🌺</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* COMMUNITY TAB */}
+      {activeTab === "community" && (
+        <div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:20 }}>
+            <StatCard emoji="💬" label="Posts hoy" value={stats?.postsToday||0} color={C.violeta}/>
+            <StatCard emoji="📅" label="Posts semana" value={stats?.postsWeek||0} color={C.dorado}/>
+          </div>
+          <h3 style={{ fontFamily:"Georgia,serif", fontSize:18, margin:"0 0 12px", fontWeight:400 }}>Últimas reflexiones</h3>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {posts.slice(0,20).map((p,i) => (
+              <div key={i} style={{ background:C.blanco, borderRadius:14, padding:"14px 16px", border:"1.5px solid rgba(91,45,142,0.07)" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                  <span style={{ fontWeight:600, fontSize:13, color:C.carbon }}>{p.avatar} {p.author}</span>
+                  <span style={{ fontSize:11, color:C.gris }}>{timeAgo(p.timestamp)}</span>
+                </div>
+                <p style={{ fontSize:13, color:"#3A3540", lineHeight:1.55, margin:"0 0 8px" }}>{p.text}</p>
+                <span style={{ fontSize:11, color:C.violeta }}>💜 {p.likes?.length||0} likes</span>
+              </div>
+            ))}
+            {posts.length === 0 && (
+              <p style={{ textAlign:"center", color:C.gris, fontStyle:"italic", fontFamily:"Georgia,serif" }}>Aún no hay reflexiones en la comunidad.</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════
 // APP ROOT
 // ═══════════════════════════════════════
@@ -1590,12 +1803,15 @@ export default function FloreceApp() {
   const openModal = ({ title, content }) => setModal({ title, content });
   const closeModal = () => setModal(null);
 
+  const isAdmin = user?.email === ADMIN_EMAIL;
+
   const tabs = [
     { id:"home", icon:"🏠", label:"Inicio" },
     { id:"manifestar", icon:"🌟", label:"Manifestar" },
     { id:"reto", icon:"🎯", label:"Reto 7D" },
     { id:"comunidad", icon:"💜", label:"Comunidad" },
     { id:"perfil", icon:"perfil", label:"Mi Camino" },
+    ...(isAdmin ? [{ id:"dashboard", icon:"📊", label:"Admin" }] : []),
   ];
 
   if (loading) return (
@@ -1628,6 +1844,7 @@ export default function FloreceApp() {
       {tab==="reto" && <RetoScreen user={user} onUpdate={updateUser} showToast={showToast}/>}
       {tab==="comunidad" && <ComunidadScreen user={user} showToast={showToast} onOpenModal={openModal}/>}
       {tab==="perfil" && <PerfilScreen user={user} onLogout={handleLogout}/>}
+      {tab==="dashboard" && <DashboardScreen user={user}/>}
 
       {/* TAB BAR */}
       <nav style={{ background:C.blanco,borderTop:`1px solid rgba(91,45,142,0.08)`,display:"flex",justifyContent:"space-around",padding:"6px 0 10px",position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,zIndex:100,boxShadow:"0 -4px 20px rgba(0,0,0,0.05)" }}>
