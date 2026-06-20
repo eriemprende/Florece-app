@@ -96,6 +96,19 @@ async function generateAffirmation(theme = "general") {
     abundancia: "atraer prosperidad, dinero y oportunidades",
     accion: "tomar acción a pesar del miedo y las dudas",
   };
+  const mentores = ["Lain García Calvo", "Brian Tracy", "Tony Robbins", "Margarita Pasos", "Otilia Bernal"];
+  const angulos = [
+    "el poder de la palabra hablada y la energía que transmite",
+    "la conexión entre sentir algo profundamente y manifestarlo en la realidad",
+    "tomar acción concreta hoy mismo, sin esperar el momento perfecto",
+    "soltar el miedo y la duda para abrir paso a la abundancia",
+    "la fuerza interior que ya existe dentro de cada mujer",
+    "construir libertad para poder estar presente con quienes ama",
+  ];
+  const mentorElegido = mentores[Math.floor(Math.random() * mentores.length)];
+  const anguloElegido = angulos[Math.floor(Math.random() * angulos.length)];
+  const sello = Math.random().toString(36).substring(2, 8);
+
   const res = await fetch("/api/claude", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -104,9 +117,15 @@ async function generateAffirmation(theme = "general") {
       max_tokens: 1000,
       messages: [{
         role: "user",
-        content: `Genera UNA afirmación poderosa en español sobre: ${themes[theme] || themes.general}. 
-        Estilo: primera persona, presente, emotiva, inspirada en mentores como Lain García Calvo, Brian Tracy, Tony Robbins, Margarita Pasos, Otilia Bernal.
-        Máximo 2 frases. Solo la afirmación, sin comillas ni explicaciones.`
+        content: `[id:${sello}] Genera UNA afirmación poderosa y ORIGINAL en español sobre: ${themes[theme] || themes.general}.
+
+Inspírate especialmente en el estilo de ${mentorElegido}, enfocándote en: ${anguloElegido}.
+
+Reglas:
+- Primera persona, tiempo presente, muy emotiva
+- Máximo 2 frases
+- Debe sonar fresca y distinta cada vez — evita frases genéricas como "soy capaz de crear la vida que imagino"
+- Solo la afirmación, sin comillas ni explicaciones ni numeración`
       }]
     })
   });
@@ -734,13 +753,32 @@ function VisualizacionModal({ user, onClose, onComplete }) {
 
   const generarVision = async () => {
     setLoadingAi(true);
-    setFase("escribir");
+    setAiVision(""); // clear previous vision
+    const hora = new Date().toLocaleTimeString("es-ES");
+    const enfoques = [
+      "Enfócate en los sentidos: qué ves, qué hueles, qué escuchas en esa vida.",
+      "Enfócate en las emociones: cómo te sientes en tu cuerpo al vivir eso.",
+      "Enfócate en los detalles cotidianos de ese día perfecto.",
+      "Enfócate en el impacto que tienes en las personas que amas.",
+      "Enfócate en tu sensación de libertad, de haberlo logrado.",
+    ];
+    const enfoque = enfoques[Math.floor(Math.random() * enfoques.length)];
     const res = await fetch("/api/claude", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({
         model:"claude-sonnet-4-6", max_tokens:1000,
-        messages:[{ role:"user", content:`Eres una guía de visualización para mujeres emprendedoras hispanohablantes. El texto que escribió la usuaria sobre su vida ideal es: "${texto}". Genera una visualización guiada poderosa de 3-4 frases en segunda persona (tú), presente, muy emotiva y específica basada en lo que escribió. Solo el texto de la visualización.` }]
+        messages:[{ role:"user", content:`Eres una guía de visualización creativa para mujeres emprendedoras hispanohablantes. Hora actual: ${hora}.
+
+La usuaria describió su vida ideal así: "${texto}"
+
+Genera una visualización guiada ÚNICA y DIFERENTE cada vez. ${enfoque}
+
+Reglas:
+- 3-4 frases en segunda persona (tú), tiempo presente
+- Muy emotiva, sensorial y específica basada en lo que escribió
+- Diferente a cualquier visualización genérica
+- Solo el texto de la visualización, sin introducción ni explicación` }]
       })
     });
     const data = await res.json();
@@ -773,11 +811,18 @@ function VisualizacionModal({ user, onClose, onComplete }) {
       </button>
       {aiVision && !loadingAi && (
         <div>
-          <div style={{ background:C.violetaSuave, borderRadius:16, padding:"18px 16px", marginTop:16, marginBottom:16 }}>
+          <div style={{ background:C.violetaSuave, borderRadius:16, padding:"18px 16px", marginTop:16, marginBottom:12 }}>
             <p style={{ fontSize:12, color:C.violeta, fontWeight:600, margin:"0 0 8px" }}>🌺 Tu visualización:</p>
             <p style={{ fontFamily:"Georgia,serif", fontSize:16, fontStyle:"italic", color:C.carbon, lineHeight:1.7, margin:0 }}>{aiVision}</p>
           </div>
-          <button onClick={()=>setFase("completo")} style={{ width:"100%", background:C.dorado, color:C.carbon, border:"none", borderRadius:50, padding:"13px", fontSize:14, cursor:"pointer", fontFamily:"inherit", fontWeight:600 }}>Esta es mi visión ✓</button>
+          <div style={{ display:"flex", gap:10 }}>
+            <button onClick={generarVision} style={{ flex:1, background:"none", border:`1px solid rgba(91,45,142,0.25)`, borderRadius:50, padding:"11px", fontSize:13, cursor:"pointer", color:C.violeta, fontFamily:"inherit" }}>
+              🔀 Generar otra
+            </button>
+            <button onClick={()=>setFase("completo")} style={{ flex:1, background:C.dorado, color:C.carbon, border:"none", borderRadius:50, padding:"11px", fontSize:13, cursor:"pointer", fontFamily:"inherit", fontWeight:600 }}>
+              Esta es mi visión ✓
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -912,6 +957,24 @@ function HomeScreen({ user, onUpdate, showToast, onOpenModal }) {
 // SCREEN: MANIFESTACIONES POR ÁMBITO
 // ═══════════════════════════════════════
 
+// ─── ABUNDANCIA — sección destacada propia ───
+const ABUNDANCIA = {
+  key:"abundancia", label:"Abundancia", emoji:"💰", hz:639, freqIdx:3,
+  color:"linear-gradient(135deg,#FFF8E1,#FFE082)", borderColor:"rgba(255,160,0,0.3)",
+  mentor:"Lain García Calvo · Brian Tracy · Margarita Pasos",
+  descripcion:"El dinero es energía. Vibra en la frecuencia de la prosperidad.",
+  afirmaciones:[
+    { texto:"La abundancia no es algo que obtienes, es algo con lo que te sintonizas.", autor:"Lain García Calvo" },
+    { texto:"Lo que sientes es lo que atraes. Siente la prosperidad antes de tenerla.", autor:"Lain García Calvo" },
+    { texto:"El dinero es solo un resultado. La riqueza se construye primero en la mente.", autor:"Lain García Calvo" },
+    { texto:"No puedes atraer lo que deseas si vibras en la frecuencia de la carencia.", autor:"Lain García Calvo" },
+    { texto:"Mereces ser próspera. La culpa sobre el dinero es la mayor barrera para recibirlo.", autor:"Lain García Calvo" },
+    { texto:"Tu mundo exterior es siempre un reflejo de tu mundo interior.", autor:"Brian Tracy" },
+    { texto:"Las personas exitosas tienen el hábito de hacer las cosas que a los fracasados no les gusta hacer.", autor:"Brian Tracy" },
+    { texto:"Siempre se gana o se aprende. El dinero perdido es una lección, nunca una derrota final.", autor:"Margarita Pasos" },
+  ]
+};
+
 const AMBITOS = [
   {
     key:"mentalidad", label:"Mentalidad", emoji:"🧠", hz:528, freqIdx:2,
@@ -937,19 +1000,6 @@ const AMBITOS = [
       { texto:"La única forma de hacer un gran trabajo es amar lo que haces.", autor:"Tony Robbins" },
       { texto:"No hay que esperar las circunstancias perfectas. Hay que crear las circunstancias.", autor:"Tony Robbins" },
       { texto:"El éxito en los negocios requiere entrenamiento, disciplina y trabajo duro.", autor:"Brian Tracy" },
-    ]
-  },
-  {
-    key:"abundancia", label:"Abundancia", emoji:"💰", hz:639, freqIdx:3,
-    color:"linear-gradient(135deg,#FFF8E1,#FFE082)", borderColor:"rgba(255,160,0,0.3)",
-    mentor:"Lain García Calvo",
-    descripcion:"El dinero es energía. Vibra en la frecuencia de la prosperidad.",
-    afirmaciones:[
-      { texto:"La abundancia no es algo que obtienes, es algo con lo que te sintonizas.", autor:"Lain García Calvo" },
-      { texto:"Lo que sientes es lo que atraes. Siente la prosperidad antes de tenerla.", autor:"Lain García Calvo" },
-      { texto:"El dinero es solo un resultado. La riqueza se construye primero en la mente.", autor:"Lain García Calvo" },
-      { texto:"No puedes atraer lo que deseas si vibras en la frecuencia de la carencia.", autor:"Lain García Calvo" },
-      { texto:"Mereces ser próspera. La culpa sobre el dinero es la mayor barrera para recibirlo.", autor:"Lain García Calvo" },
     ]
   },
   {
@@ -1054,10 +1104,21 @@ function AmbitoPractice({ ambito, onBack, showToast }) {
 
   const generarAiAff = async () => {
     setLoadingAi(true);
+    setAiAff(""); // clear previous results
     const temas = { mentalidad:"reprogramación mental y autoconfianza femenina", negocio:"emprendimiento femenino y éxito empresarial", abundancia:"prosperidad y abundancia económica", familia:"maternidad consciente y familia libre", accion:"tomar acción con valentía a pesar del miedo", libertad:"libertad financiera y de tiempo para mujeres emprendedoras" };
+    const mentores = ["Brian Tracy", "Tony Robbins", "Lain García Calvo", "Margarita Pasos", "Otilia Bernal"];
+    const mentorElegido = mentores[Math.floor(Math.random() * mentores.length)];
+    const sello = Math.random().toString(36).substring(2, 8);
     const res = await fetch("/api/claude", {
       method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, messages:[{ role:"user", content:`Eres un experto en las enseñanzas de Brian Tracy, Tony Robbins, Lain García Calvo, Margarita Pasos y Otilia Bernal. Genera 3 manifestaciones poderosas en español sobre: ${temas[ambito.key]||"libertad femenina"}. Estilo: frases cortas, directas, en segunda persona (tú), muy emotivas, basadas en el estilo de estos mentores. Sin numeración, una por línea, sin comillas.` }] })
+      body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1000, messages:[{ role:"user", content:`[id:${sello}] Genera 3 manifestaciones poderosas y ORIGINALES en español sobre: ${temas[ambito.key]||"libertad femenina"}.
+
+Inspírate especialmente en el estilo de ${mentorElegido} para esta tanda.
+
+Reglas:
+- Frases cortas, directas, en segunda persona (tú), muy emotivas
+- Deben ser frescas y distintas de frases genéricas comunes
+- Sin numeración, una por línea, sin comillas, sin explicaciones` }] })
     });
     const data = await res.json();
     setAiAff(data.content?.[0]?.text?.trim() || "");
@@ -1219,7 +1280,7 @@ function AffirmationsScreen({ user, onUpdate, showToast }) {
   };
 
   if (ambitoActivo) {
-    const a = AMBITOS.find(a=>a.key===ambitoActivo);
+    const a = ambitoActivo === "abundancia" ? ABUNDANCIA : AMBITOS.find(a=>a.key===ambitoActivo);
     return (
       <div style={{ padding:"0 0 90px" }}>
         <div style={{ background:C.blanco, padding:"16px 20px", display:"flex", alignItems:"center", gap:12, borderBottom:`1px solid rgba(91,45,142,0.08)`, position:"sticky", top:0, zIndex:10 }}>
@@ -1252,8 +1313,29 @@ function AffirmationsScreen({ user, onUpdate, showToast }) {
         </div>
       </div>
 
+      {/* ABUNDANCIA — SECCIÓN DESTACADA */}
+      <div onClick={()=>{ SoundEngine.playBowl(ABUNDANCIA.hz, 2, 0.2); setAmbitoActivo("abundancia"); }}
+        style={{ background:ABUNDANCIA.color, borderRadius:22, padding:"22px 20px", marginBottom:24, cursor:"pointer", border:`2px solid ${favs.includes("abundancia")?C.violeta:ABUNDANCIA.borderColor}`, position:"relative", overflow:"hidden", boxShadow:"0 8px 30px rgba(255,160,0,0.18)" }}>
+        <div style={{ position:"absolute", right:-10, top:-10, fontSize:90, opacity:0.1 }}>💰</div>
+        <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"rgba(255,255,255,0.5)", borderRadius:20, padding:"4px 12px", fontSize:11, color:"#8B6020", fontWeight:600, marginBottom:12 }}>
+          ⭐ Ámbito destacado
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+          <div style={{ fontSize:44, flexShrink:0 }}>{ABUNDANCIA.emoji}</div>
+          <div style={{ flex:1 }}>
+            <p style={{ fontFamily:"Georgia,serif", fontSize:22, fontWeight:600, color:C.carbon, margin:"0 0 4px" }}>Abundancia</p>
+            <p style={{ fontSize:13, color:"#4A3060", margin:"0 0 8px", lineHeight:1.45 }}>{ABUNDANCIA.descripcion}</p>
+            <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
+              <span style={{ fontSize:11, color:C.gris, display:"flex", alignItems:"center", gap:3 }}>🎵 {FRECUENCIAS[ABUNDANCIA.freqIdx].nombre}</span>
+              <span style={{ fontSize:11, color:C.gris }}>· {ABUNDANCIA.afirmaciones.length} manifestaciones</span>
+            </div>
+          </div>
+        </div>
+        <button onClick={e=>{e.stopPropagation();toggleFav("abundancia");}} style={{ position:"absolute", top:14, right:14, background:"none", border:"none", fontSize:18, cursor:"pointer", opacity:favs.includes("abundancia")?1:0.3 }}>💜</button>
+      </div>
+
       {/* ÁMBITOS GRID */}
-      <h3 style={{ fontFamily:"Georgia,serif", fontSize:20, margin:"0 0 6px", fontWeight:400 }}>¿Qué quieres manifestar hoy?</h3>
+      <h3 style={{ fontFamily:"Georgia,serif", fontSize:20, margin:"0 0 6px", fontWeight:400 }}>¿Qué más quieres manifestar?</h3>
       <p style={{ fontSize:13, color:C.gris, margin:"0 0 16px" }}>Toca un ámbito. Escucha la frecuencia. Di las palabras.</p>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:28 }}>
         {AMBITOS.map(a => (
