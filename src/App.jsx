@@ -88,7 +88,7 @@ async function storeSet(key, val, shared = false) {
 }
 
 // ─── AI AFFIRMATION via Claude ───
-async function generateAffirmation(theme = "general") {
+async function generateAffirmation(theme = "general", history = []) {
   const themes = {
     general: "libertad financiera y de tiempo para madres y mujeres emprendedoras",
     negocio: "iniciar y crecer un negocio propio con valentía",
@@ -108,6 +108,9 @@ async function generateAffirmation(theme = "general") {
   const mentorElegido = mentores[Math.floor(Math.random() * mentores.length)];
   const anguloElegido = angulos[Math.floor(Math.random() * angulos.length)];
   const sello = Math.random().toString(36).substring(2, 8);
+  const evitar = history.length > 0
+    ? `\n\nNO repitas ni te parezcas a estas afirmaciones que ya se mostraron recientemente:\n${history.map(h=>`- "${h}"`).join("\n")}`
+    : "";
 
   const res = await fetch("/api/claude", {
     method: "POST",
@@ -125,7 +128,7 @@ Reglas:
 - Primera persona, tiempo presente, muy emotiva
 - Máximo 2 frases
 - Debe sonar fresca y distinta cada vez — evita frases genéricas como "soy capaz de crear la vida que imagino"
-- Solo la afirmación, sin comillas ni explicaciones ni numeración`
+- Solo la afirmación, sin comillas ni explicaciones ni numeración${evitar}`
       }]
     })
   });
@@ -858,9 +861,10 @@ Reglas:
 function HomeScreen({ user, onUpdate, showToast, onOpenModal }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Buenos días" : hour < 18 ? "Buenas tardes" : "Buenas noches";
-  const [todayAff, setTodayAff] = useState("Soy capaz de crear la vida que imagino. Mi momento es hoy.");
-  const [loadingAff, setLoadingAff] = useState(false);
+  const [todayAff, setTodayAff] = useState("");
+  const [loadingAff, setLoadingAff] = useState(true);
   const [activePractice, setActivePractice] = useState(null);
+  const affHistoryRef = useRef([]);
 
   const practices = [
     { icon:"🧘‍♀️", bg:"rgba(91,45,142,0.1)", name:"Meditación de Apertura", desc:"Guiada paso a paso. 5 minutos que transforman tu día.", time:"5 min", key:"meditacion" },
@@ -885,10 +889,19 @@ function HomeScreen({ user, onUpdate, showToast, onOpenModal }) {
 
   const refreshAff = async () => {
     setLoadingAff(true);
-    const aff = await generateAffirmation("general");
+    let aff = "";
+    let intentos = 0;
+    // Try up to 3 times to get something different from the last one shown
+    do {
+      aff = await generateAffirmation("general", affHistoryRef.current);
+      intentos++;
+    } while (affHistoryRef.current.includes(aff) && intentos < 3);
+    affHistoryRef.current = [aff, ...affHistoryRef.current].slice(0, 5);
     setTodayAff(aff);
     setLoadingAff(false);
   };
+
+  useEffect(() => { refreshAff(); }, []);
 
   // Full-screen practice overlay
   if (activePractice) return (
