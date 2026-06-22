@@ -936,15 +936,30 @@ function HomeScreen({ user, onUpdate, showToast, onOpenModal }) {
 
   const refreshAff = async () => {
     setLoadingAff(true);
+    setTodayAff("");
     let aff = "";
     let intentos = 0;
-    // Try up to 3 times to get something different from the last one shown
     do {
-      aff = await generateAffirmation("general", affHistoryRef.current);
+      try {
+        aff = await generateAffirmation("general", affHistoryRef.current);
+      } catch { aff = ""; }
       intentos++;
-    } while (affHistoryRef.current.includes(aff) && intentos < 3);
-    affHistoryRef.current = [aff, ...affHistoryRef.current].slice(0, 5);
-    setTodayAff(aff);
+    } while ((!aff || affHistoryRef.current.includes(aff)) && intentos < 3);
+    if (aff) {
+      affHistoryRef.current = [aff, ...affHistoryRef.current].slice(0, 5);
+      setTodayAff(aff);
+    } else {
+      // Fallback estático variado si la IA no responde
+      const fallbacks = [
+        "Hoy elijo avanzar con valentía. Mi momento es ahora y no lo dejo pasar.",
+        "Soy un imán para la abundancia. Todo lo que necesito ya está fluyendo hacia mí.",
+        "Actúo a pesar del miedo porque sé que el proceso me enseña y me fortalece.",
+        "Mi palabra es energía. Lo que declaro hoy, lo creo mañana.",
+        "Soy libre de construir la vida que me merezco. El momento perfecto es hoy.",
+      ];
+      const idx = affHistoryRef.current.length % fallbacks.length;
+      setTodayAff(fallbacks[idx]);
+    }
     setLoadingAff(false);
   };
 
@@ -976,7 +991,7 @@ function HomeScreen({ user, onUpdate, showToast, onOpenModal }) {
         <p style={{ fontSize:11,color:C.dorado,letterSpacing:2,textTransform:"uppercase",margin:"0 0 6px" }}>{greeting}</p>
         <h2 style={{ fontFamily:"Georgia,serif",fontSize:28,fontWeight:300,margin:"0 0 14px" }}>{user.name} 💜</h2>
         <div style={{ fontFamily:"Georgia,serif",fontSize:16,fontStyle:"italic",color:"rgba(255,255,255,0.82)",lineHeight:1.5,borderLeft:`2px solid ${C.dorado}`,paddingLeft:14,marginBottom:18,cursor:loadingAff?"not-allowed":"pointer" }} onClick={!loadingAff?refreshAff:undefined}>
-          {loadingAff ? "Generando tu afirmación del día..." : todayAff}
+          {loadingAff ? "✨ Generando tu manifestación del día..." : todayAff || "Toca para generar tu manifestación ✨"}
           {!loadingAff && <span style={{ fontSize:10,display:"block",color:"rgba(255,255,255,0.35)",marginTop:4 }}>Toca para renovar ↻</span>}
         </div>
         <div style={{ display:"flex",gap:8,flexWrap:"wrap" }}>
@@ -1798,15 +1813,12 @@ function ComunidadScreen({ user, showToast, onOpenModal }) {
 function PerfilScreen({ user, onLogout }) {
   const [activeMentor, setActiveMentor] = useState(0);
   const completed = user.completedDays?.length || 0;
-  const bars = [
-    { label:"🧠 Reprogramación mental", pct: Math.min(100, (user.streak||0)*10) },
-    { label:"✨ Práctica de afirmaciones", pct: Math.min(100, (user.favAffirmations?.length||0)*12) },
-    { label:"💼 Mentalidad de negocio", pct: Math.min(100, completed * 14) },
-    { label:"🌊 Frecuencia & Vibración", pct: Math.min(100, (user.points||0)/2) },
-  ];
+  const semanaActual = completed < 7 ? 1 : completed < 14 ? 2 : 3;
+  const retoPct = Math.round((completed / 21) * 100);
 
   return (
     <div style={{ padding:"20px 20px 90px" }}>
+      {/* HERO */}
       <div style={{ textAlign:"center",padding:"28px 20px",background:`linear-gradient(160deg,${C.carbon},#2D1845)`,borderRadius:24,marginBottom:20,color:"white" }}>
         <div style={{ width:90,height:90,borderRadius:"50%",background:`linear-gradient(135deg,${C.dorado},${C.violetaClaro})`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",border:"3px solid rgba(255,255,255,0.18)" }}>
           <Cayena size={56} color="white" glow />
@@ -1823,20 +1835,31 @@ function PerfilScreen({ user, onLogout }) {
         </div>
       </div>
 
-      <h3 style={{ fontFamily:"Georgia,serif",fontSize:20,margin:"0 0 14px",fontWeight:400 }}>Tu crecimiento</h3>
-      {bars.map(b=>(
-        <div key={b.label} style={{ background:C.blanco,borderRadius:16,padding:18,marginBottom:10,boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
-          <div style={{ display:"flex",justifyContent:"space-between",marginBottom:10 }}>
-            <span style={{ fontSize:14,fontWeight:500 }}>{b.label}</span>
-            <span style={{ fontSize:13,color:C.violeta,fontWeight:600 }}>{b.pct}%</span>
+      {/* RETO 21 DÍAS PROGRESS */}
+      <h3 style={{ fontFamily:"Georgia,serif",fontSize:20,margin:"0 0 14px",fontWeight:400 }}>Tu Reto 21 Días 🦋</h3>
+      <div style={{ background:C.blanco,borderRadius:18,padding:"20px 18px",marginBottom:20,boxShadow:"0 2px 14px rgba(0,0,0,0.05)",border:`1.5px solid rgba(91,45,142,0.08)` }}>
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14 }}>
+          <div>
+            <p style={{ fontWeight:600,fontSize:15,color:C.carbon,margin:"0 0 3px" }}>Semana {semanaActual} — {["Despertar","Programar","Anclar"][semanaActual-1]}</p>
+            <p style={{ fontSize:12,color:C.gris,margin:0 }}>{completed} de 21 días completados</p>
           </div>
-          <div style={{ height:6,background:"rgba(91,45,142,0.1)",borderRadius:10,overflow:"hidden" }}>
-            <div style={{ height:"100%",width:`${b.pct}%`,background:`linear-gradient(90deg,${C.violetaClaro},${C.dorado})`,borderRadius:10,transition:"width 0.8s ease" }}/>
-          </div>
+          <span style={{ fontFamily:"Georgia,serif",fontSize:26,color:C.violeta,fontWeight:400 }}>{retoPct}%</span>
         </div>
-      ))}
+        <div style={{ height:8,background:"rgba(91,45,142,0.1)",borderRadius:10,overflow:"hidden",marginBottom:14 }}>
+          <div style={{ height:"100%",width:`${retoPct}%`,background:`linear-gradient(90deg,${C.violetaClaro},${C.dorado})`,borderRadius:10,transition:"width 0.8s ease" }}/>
+        </div>
+        <div style={{ display:"flex",gap:8 }}>
+          {[1,2,3].map(s=>(
+            <div key={s} style={{ flex:1,textAlign:"center",padding:"8px 4px",borderRadius:10,background:completed>=(s*7)?`linear-gradient(135deg,${C.violeta},${C.violetaClaro})`:completed>=(s-1)*7?"rgba(201,160,80,0.15)":"rgba(91,45,142,0.04)",border:`1px solid ${completed>=(s*7)?"rgba(91,45,142,0.3)":completed>=(s-1)*7?"rgba(201,160,80,0.3)":"rgba(91,45,142,0.08)"}` }}>
+              <p style={{ fontSize:11,fontWeight:600,color:completed>=(s*7)?"white":completed>=(s-1)*7?C.dorado:C.gris,margin:"0 0 2px" }}>S{s}</p>
+              <p style={{ fontSize:10,color:completed>=(s*7)?"rgba(255,255,255,0.7)":C.gris,margin:0 }}>{["Despertar","Programar","Anclar"][s-1]}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
-      <h3 style={{ fontFamily:"Georgia,serif",fontSize:20,margin:"20px 0 14px",fontWeight:400 }}>Mis mentores favoritos</h3>
+      {/* MENTORES */}
+      <h3 style={{ fontFamily:"Georgia,serif",fontSize:20,margin:"0 0 14px",fontWeight:400 }}>Mis mentores favoritos</h3>
       <div style={{ display:"flex",gap:8,overflowX:"auto",paddingBottom:8,marginBottom:24 }}>
         {MENTORES.map((m,i)=>(
           <button key={m} onClick={()=>setActiveMentor(i)} style={{ background:i===activeMentor?C.violeta:C.blanco,color:i===activeMentor?"white":C.violeta,border:`1px solid ${i===activeMentor?C.violeta:"rgba(91,45,142,0.2)"}`,borderRadius:50,padding:"8px 16px",fontSize:12,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,transition:"all 0.2s",fontFamily:"inherit" }}>{m}</button>
