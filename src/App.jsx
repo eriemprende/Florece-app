@@ -167,14 +167,61 @@ const DECK = [
   { text: "Mi historia merece ser contada. Mi éxito merece ser vivido.", cat: "🌺 Identidad", mentor: "Florece", fav: false },
 ];
 
+const SEMANAS_RETO = [
+  {
+    semana: 1, titulo: "Despertar", subtitulo: "Rompe las cadenas del pasado",
+    color: `linear-gradient(135deg,#5B2D8E,#3A1870)`, hz: 396, freqIdx: 0,
+    descripcion: "El cerebro resiste el cambio. Esta semana no buscas transformarte — creas el espacio para hacerlo. Sueltas lo viejo.",
+    colorPill: "#EDE0FF", colorPillText: "#3C3489",
+  },
+  {
+    semana: 2, titulo: "Programar", subtitulo: "Instala tu nueva identidad",
+    color: `linear-gradient(135deg,#0F6E56,#085041)`, hz: 528, freqIdx: 2,
+    descripcion: "El subconsciente recibe nuevas instrucciones. La repetición consciente forma conexiones neuronales. El hábito se vuelve natural.",
+    colorPill: "#E1F5EE", colorPillText: "#085041",
+  },
+  {
+    semana: 3, titulo: "Anclar", subtitulo: "Eres esa mujer. Ya.",
+    color: `linear-gradient(135deg,#854F0B,#633806)`, hz: 852, freqIdx: 5,
+    descripcion: "El hábito ya existe — ahora se ancla para siempre. Ya no haces las cosas para cambiar. Las haces porque eres esa mujer.",
+    colorPill: "#FAEEDA", colorPillText: "#633806",
+  },
+];
+
+const HABITOS_DIARIOS = [
+  { icon:"🌅", titulo:"Despertar consciente", desc:"5 min sin teléfono. Respira. Establece la intención del día.", duracion:"5 min" },
+  { icon:"🧘‍♀️", titulo:"Meditación con frecuencia", desc:"Medita con la frecuencia de tu semana. Silencia el ruido mental.", duracion:"5-10 min" },
+  { icon:"🗣️", titulo:"Manifestaciones en voz alta", desc:"3-5 frases de tus mentores, con emoción y convicción plena.", duracion:"5 min" },
+  { icon:"✍️", titulo:"Diario de gratitud", desc:"3 entradas: qué agradezco, qué logré, qué suelto hoy.", duracion:"3 min" },
+  { icon:"⚡", titulo:"Acción valiente", desc:"Una cosa que produce miedo. Solo una. Hazla hoy.", duracion:"Variable" },
+  { icon:"🌙", titulo:"Revisión nocturna", desc:"¿Qué aprendí? ¿Qué mejoro mañana? Cierra el día con paz.", duracion:"2 min" },
+];
+
 const RETO_DIAS = [
-  { dia: 1, titulo: "Hoy me elijo a mí", desc: "Escribe 3 razones por las que mereces la vida que deseas.", icon: "🌱", afirmacion: "Me elijo a mí misma sin culpa. Soy mi primera prioridad." },
-  { dia: 2, titulo: "El poder de mis palabras", desc: "Di en voz alta 5 veces: 'Soy capaz. Soy abundante. Soy libre.'", icon: "🗣️", afirmacion: "Mis palabras crean mi realidad. Hablo lo que quiero ser." },
-  { dia: 3, titulo: "Gratitud que atrae", desc: "Anota 5 cosas que agradeces hoy, incluyendo algo de tu futuro.", icon: "🙏", afirmacion: "La gratitud abre las puertas de la abundancia en mi vida." },
-  { dia: 4, titulo: "Visualiza tu vida libre", desc: "Cierra los ojos 5 minutos y vívete ya en tu vida ideal.", icon: "🔮", afirmacion: "Lo que puedo imaginar, lo puedo crear. Ya lo estoy viviendo." },
-  { dia: 5, titulo: "Una acción valiente", desc: "Haz HOY una cosa que has pospuesto por miedo.", icon: "⚡", afirmacion: "Actúo a pesar del miedo. El proceso me enseña y me fortalece." },
-  { dia: 6, titulo: "Mi tribu me sostiene", desc: "Comparte en la comunidad algo que aprendiste esta semana.", icon: "💜", afirmacion: "No camino sola. Juntas somos más fuertes y más libres." },
-  { dia: 7, titulo: "Soy quien decide", desc: "Escribe tu declaración personal de libertad. Fírmala.", icon: "✍️", afirmacion: "Soy la autora de mi historia. Elijo escribirla desde el poder." },
+  // SEMANA 1 — DESPERTAR (396 Hz)
+  { dia:1, semana:1, titulo:"¿Quién era yo?", desc:"Escribe 3 creencias limitantes que has cargado. Nómbralas para poder soltarlas.", icon:"🌱", afirmacion:"Hoy tomo la decisión más importante de mi vida: elegirme a mí misma.", mentor:"Margarita Pasos", habito:"Despertar consciente" },
+  { dia:2, semana:1, titulo:"El poder de mis palabras", desc:"Di en voz alta 5 veces: 'Soy capaz. Soy abundante. Soy libre.' Siente cada palabra.", icon:"🗣️", afirmacion:"Mis palabras crean mi realidad. Hablo lo que quiero ser y lo que quiero atraer.", mentor:"Lain García Calvo", habito:"Manifestaciones" },
+  { dia:3, semana:1, titulo:"Gratitud que desbloquea", desc:"Escribe 5 cosas que agradeces hoy — incluyendo algo que aún no tienes pero ya sientes.", icon:"🙏", afirmacion:"La gratitud abre las puertas de la abundancia. Doy gracias antes de recibir.", mentor:"Tony Robbins", habito:"Diario de gratitud" },
+  { dia:4, semana:1, titulo:"Suelta lo que no eres", desc:"Identifica un pensamiento que te limita. Escríbelo y luego rompe el papel. Ritual de soltar.", icon:"🌬️", afirmacion:"Suelto todo lo que no me sirve. Mi mente es libre para crear algo nuevo.", mentor:"Brian Tracy", habito:"Meditación 396 Hz" },
+  { dia:5, semana:1, titulo:"Primera acción valiente", desc:"Haz HOY algo que has pospuesto por miedo. Lo que sea. Solo una cosa.", icon:"⚡", afirmacion:"La acción es la cura fundamental para el miedo. Actúo y el miedo desaparece.", mentor:"Tony Robbins", habito:"Acción valiente" },
+  { dia:6, semana:1, titulo:"Mi voz, mi poder", desc:"Grábate diciendo tus manifestaciones. Escúchate. Tu voz es el instrumento más poderoso.", icon:"🎙️", afirmacion:"Mi voz tiene el poder de programar mi mente y de atraer lo que declaro.", mentor:"Lain García Calvo", habito:"Manifestaciones" },
+  { dia:7, semana:1, titulo:"Reflexión de la semana", desc:"Comparte en la comunidad: ¿qué soltaste esta semana? ¿qué descubriste de ti misma?", icon:"💜", afirmacion:"Soy la autora de mi historia. Elijo escribirla desde el poder y no desde el miedo.", mentor:"Margarita Pasos", habito:"Comunidad" },
+  // SEMANA 2 — PROGRAMAR (528 Hz)
+  { dia:8, semana:2, titulo:"Programo mi mente", desc:"Repite tu afirmación principal 21 veces en voz alta con los ojos cerrados y la mano en el corazón.", icon:"🧠", afirmacion:"Mi subconsciente trabaja para mí. Lo que repito con emoción se convierte en realidad.", mentor:"Brian Tracy", habito:"Manifestaciones x21" },
+  { dia:9, semana:2, titulo:"Visualizo mi vida libre", desc:"Cierra los ojos 7 minutos. Vívete ya en tu vida ideal — ve los detalles, siéntelos.", icon:"🔮", afirmacion:"Lo que puedo imaginar, lo puedo crear. Ya lo estoy viviendo en mi mente.", mentor:"Tony Robbins", habito:"Visualización" },
+  { dia:10, semana:2, titulo:"Siento la abundancia", desc:"Actúa como si ya tuvieras lo que deseas. Camina, habla y piensa como esa versión de ti.", icon:"💰", afirmacion:"El dinero fluye hacia mí porque vibro en la frecuencia de la prosperidad.", mentor:"Lain García Calvo", habito:"Meditación 528 Hz" },
+  { dia:11, semana:2, titulo:"Mi negocio florece", desc:"Escribe una carta desde el futuro contando cómo creció tu negocio o proyecto. En presente.", icon:"💼", afirmacion:"Mi negocio crece con facilidad porque ofrezco valor real y auténtico al mundo.", mentor:"Margarita Pasos", habito:"Visualización" },
+  { dia:12, semana:2, titulo:"Supero el miedo", desc:"Identifica tu miedo más grande hoy. Escríbelo. Luego escribe qué pasaría si lo superas.", icon:"🦋", afirmacion:"El miedo es solo una señal de que estoy creciendo. Avanzo con él puesto.", mentor:"Otilia Bernal", habito:"Acción valiente" },
+  { dia:13, semana:2, titulo:"Mi tribu me sostiene", desc:"Escribe un mensaje de apoyo genuino a otra mujer de la comunidad. Dar es recibir.", icon:"🌸", afirmacion:"No camino sola. Mi comunidad me eleva y yo las elevo a ellas.", mentor:"Otilia Bernal", habito:"Comunidad" },
+  { dia:14, semana:2, titulo:"Reflexión semana 2", desc:"¿Qué cambió en cómo te hablas? Comparte un aprendizaje que haya tocado tu corazón.", icon:"✨", afirmacion:"Cada día soy una versión más poderosa, libre y auténtica de quien vine a ser.", mentor:"Brian Tracy", habito:"Diario" },
+  // SEMANA 3 — ANCLAR (852 Hz)
+  { dia:15, semana:3, titulo:"Soy esa mujer. Ya.", desc:"Escribe tu nueva identidad en 5 frases que empiecen con 'Soy...'. Léelas cada mañana.", icon:"🌺", afirmacion:"Soy libre, próspera, presente y poderosa. Esta es mi verdad y mi realidad.", mentor:"Margarita Pasos", habito:"Identidad" },
+  { dia:16, semana:3, titulo:"Mi familia libre", desc:"Visualiza una escena con tu familia sin estrés económico, sin prisa. Solo presencia y amor.", icon:"👨‍👧", afirmacion:"Construyo libertad hoy para que mañana mi familia viva sin límites y con amor.", mentor:"Otilia Bernal", habito:"Visualización" },
+  { dia:17, semana:3, titulo:"Mi cuerpo, mi templo", desc:"Dedica 10 minutos exclusivos a tu cuerpo: estírate, camina, respira. Solo para ti.", icon:"💚", afirmacion:"Mi cuerpo es fuerte, sano y lleno de energía. Me cuido porque me amo.", mentor:"Tony Robbins", habito:"Meditación 852 Hz" },
+  { dia:18, semana:3, titulo:"Declaro mi libertad", desc:"Escribe tu Declaración Personal de Libertad. Qué decides para tu vida. Fírmala.", icon:"📜", afirmacion:"La libertad no es un destino. Es una decisión que tomo cada mañana al despertar.", mentor:"Tony Robbins", habito:"Declaración" },
+  { dia:19, semana:3, titulo:"Carta a mi yo del día 1", desc:"Escribe una carta a la mujer que empezó este reto. Cuéntale qué cambió en ti.", icon:"💌", afirmacion:"He crecido. He aprendido. Me elijo cada día con más convicción y menos miedo.", mentor:"Lain García Calvo", habito:"Reflexión" },
+  { dia:20, semana:3, titulo:"Comparto mi transformación", desc:"Publica en la comunidad tu mayor aprendizaje de estos 21 días. Tu historia inspira.", icon:"🌟", afirmacion:"Mi historia tiene el poder de encender la llama en otras mujeres que me necesitan.", mentor:"Margarita Pasos", habito:"Comunidad" },
+  { dia:21, semana:3, titulo:"¡Soy Mariposa! 🦋", desc:"Lo lograste. Diseña ahora tu rutina de mantenimiento — cómo sigues floreciendo cada día.", icon:"🦋", afirmacion:"He completado mi transformación. Soy libre. Soy abundante. Soy Florece.", mentor:"Florece", habito:"Celebración" },
 ];
 
 const MENTORES = ["Lain García Calvo","Brian Tracy","Tony Robbins","Margarita Pasos","Otilia Bernal"];
@@ -1393,58 +1440,221 @@ function AffirmationsScreen({ user, onUpdate, showToast }) {
 // ═══════════════════════════════════════
 function RetoScreen({ user, onUpdate, showToast }) {
   const completed = user.completedDays || [];
+  const [semanaActiva, setSemanaActiva] = useState(1);
+  const [diaDetalle, setDiaDetalle] = useState(null);
+  const [sonando, setSonando] = useState(false);
+  const stopSoundRef = useRef(null);
+
+  const total = 21;
+  const progress = Math.round((completed.length / total) * 100);
+  const semanaActual = completed.length < 7 ? 1 : completed.length < 14 ? 2 : 3;
+  const semanaInfo = SEMANAS_RETO.find(s => s.semana === semanaActiva);
+  const freq = FRECUENCIAS[semanaInfo.freqIdx];
 
   const complete = async (dia) => {
     if (completed.includes(dia)) return;
     const newCompleted = [...completed, dia];
-    const updated = { ...user, completedDays: newCompleted, points: (user.points||0)+20 };
+    let level = user.level || "Semilla 🌱";
+    if (newCompleted.length >= 21) level = "Mariposa 🦋";
+    else if (newCompleted.length >= 14) level = "Brote 🌿";
+    else if (newCompleted.length >= 7) level = "Flor 🌺";
+    const updated = { ...user, completedDays: newCompleted, points: (user.points||0)+30, level };
     await storeSet(`user:${user.email}`, updated);
     onUpdate(updated);
-    showToast(`🎉 Día ${dia} completado · +20 puntos`);
+    SoundEngine.ding(528);
+    showToast(dia===21 ? "🦋 ¡MARIPOSA! ¡Completaste los 21 días! +30 puntos" : `✨ Día ${dia} completado · +30 puntos`);
+    setDiaDetalle(null);
   };
 
-  const progress = Math.round((completed.length / 7) * 100);
+  const toggleSonido = () => {
+    if (sonando) {
+      stopSoundRef.current?.(); stopSoundRef.current = null; setSonando(false);
+    } else {
+      SoundEngine.playBowl(semanaInfo.hz, 3, 0.2);
+      setTimeout(() => {
+        const stop = SoundEngine.playBinaural(semanaInfo.hz, freq.beat, 600, 0.1);
+        stopSoundRef.current = stop;
+      }, 900);
+      setSonando(true);
+    }
+  };
 
+  useEffect(() => () => { stopSoundRef.current?.(); }, []);
+
+  const diasSemana = RETO_DIAS.filter(d => d.semana === semanaActiva);
+
+  // DETALLE DE DÍA
+  if (diaDetalle) {
+    const d = diaDetalle;
+    const done = completed.includes(d.dia);
+    const isNext = !done && completed.length === d.dia - 1;
+    const semInfo = SEMANAS_RETO.find(s => s.semana === d.semana);
+    const fq = FRECUENCIAS[semInfo.freqIdx];
+    return (
+      <div style={{ padding:"0 0 90px" }}>
+        <div style={{ background:C.blanco, padding:"16px 20px", display:"flex", alignItems:"center", gap:12, borderBottom:`1px solid rgba(91,45,142,0.08)`, position:"sticky", top:0, zIndex:10 }}>
+          <button onClick={()=>setDiaDetalle(null)} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:C.gris, padding:0 }}>←</button>
+          <span style={{ fontFamily:"Georgia,serif", fontSize:18, color:C.violeta }}>Día {d.dia} · {d.titulo}</span>
+        </div>
+        <div style={{ padding:"24px 20px" }}>
+          {/* HERO */}
+          <div style={{ background:semInfo.color, borderRadius:22, padding:"28px 22px", textAlign:"center", marginBottom:20, color:"white" }}>
+            <div style={{ fontSize:52, marginBottom:10 }}>{d.icon}</div>
+            <p style={{ fontSize:11, color:"rgba(255,255,255,0.6)", letterSpacing:2, textTransform:"uppercase", margin:"0 0 8px" }}>Semana {d.semana} · {semInfo.titulo}</p>
+            <h2 style={{ fontFamily:"Georgia,serif", fontSize:24, fontWeight:300, margin:"0 0 14px" }}>{d.titulo}</h2>
+            <div style={{ background:"rgba(255,255,255,0.1)", borderRadius:14, padding:"14px 16px" }}>
+              <p style={{ fontFamily:"Georgia,serif", fontSize:17, fontStyle:"italic", color:"rgba(255,255,255,0.9)", lineHeight:1.6, margin:"0 0 8px" }}>"{d.afirmacion}"</p>
+              <p style={{ fontSize:11, color:"rgba(255,255,255,0.5)", margin:0 }}>— {d.mentor}</p>
+            </div>
+          </div>
+
+          {/* FRECUENCIA */}
+          <div style={{ background:fq.color, borderRadius:16, padding:"14px 16px", marginBottom:16, display:"flex", alignItems:"center", gap:12 }}>
+            <span style={{ fontSize:26 }}>{fq.emoji}</span>
+            <div style={{ flex:1 }}>
+              <p style={{ fontWeight:600, fontSize:13, color:C.carbon, margin:"0 0 2px" }}>Frecuencia de hoy: {fq.nombre}</p>
+              <p style={{ fontSize:12, color:C.gris, margin:0 }}>{fq.subtitulo} · {fq.descripcion}</p>
+            </div>
+          </div>
+
+          {/* PRÁCTICA DEL DÍA */}
+          <div style={{ background:C.blanco, borderRadius:18, padding:"18px 16px", marginBottom:16, border:`1.5px solid rgba(91,45,142,0.1)` }}>
+            <p style={{ fontSize:12, color:C.gris, textTransform:"uppercase", letterSpacing:1, margin:"0 0 8px", fontWeight:500 }}>Tu práctica de hoy</p>
+            <p style={{ fontSize:15, color:C.carbon, lineHeight:1.7, margin:"0 0 14px" }}>{d.desc}</p>
+            <div style={{ background:C.violetaSuave, borderRadius:12, padding:"10px 14px", display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ fontSize:16 }}>⏱</span>
+              <p style={{ fontSize:13, color:C.violeta, margin:0, fontWeight:500 }}>Hábito: {d.habito}</p>
+            </div>
+          </div>
+
+          {/* HÁBITOS DIARIOS */}
+          <div style={{ background:C.blanco, borderRadius:18, padding:"18px 16px", marginBottom:20, border:`1px solid rgba(91,45,142,0.08)` }}>
+            <p style={{ fontSize:12, color:C.gris, textTransform:"uppercase", letterSpacing:1, margin:"0 0 12px", fontWeight:500 }}>Los 6 hábitos del día</p>
+            {HABITOS_DIARIOS.map((h,i) => (
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom: i<5?`1px solid rgba(91,45,142,0.06)`:"none" }}>
+                <span style={{ fontSize:18, flexShrink:0 }}>{h.icon}</span>
+                <div style={{ flex:1 }}>
+                  <p style={{ fontSize:13, fontWeight:500, color:C.carbon, margin:"0 0 1px" }}>{h.titulo}</p>
+                  <p style={{ fontSize:11, color:C.gris, margin:0 }}>{h.duracion}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* COMPLETAR */}
+          {done ? (
+            <div style={{ background:`linear-gradient(135deg,${C.violeta},#2D1845)`, borderRadius:18, padding:"18px", textAlign:"center", color:"white" }}>
+              <div style={{ fontSize:36, marginBottom:8 }}>✅</div>
+              <p style={{ fontFamily:"Georgia,serif", fontSize:18, margin:"0 0 4px" }}>¡Día {d.dia} completado!</p>
+              <p style={{ fontSize:13, color:"rgba(255,255,255,0.6)", margin:0 }}>+30 puntos ganados</p>
+            </div>
+          ) : isNext ? (
+            <div>
+              <button onClick={()=>toggleSonido()} style={{ width:"100%", background:sonando?C.violeta:C.blanco, color:sonando?"white":C.violeta, border:`1.5px solid ${sonando?C.violeta:"rgba(91,45,142,0.25)"}`, borderRadius:50, padding:"13px", fontSize:14, cursor:"pointer", fontFamily:"inherit", marginBottom:10 }}>
+                {sonando ? `🔊 ${fq.nombre} sonando` : `🎵 Activar ${fq.nombre}`}
+              </button>
+              <button onClick={()=>complete(d.dia)} style={{ width:"100%", background:`linear-gradient(135deg,${C.dorado},#E8B050)`, color:C.carbon, border:"none", borderRadius:50, padding:"15px", fontSize:15, cursor:"pointer", fontFamily:"inherit", fontWeight:600 }}>
+                ✓ Completar día {d.dia}
+              </button>
+            </div>
+          ) : (
+            <div style={{ background:"rgba(91,45,142,0.06)", borderRadius:16, padding:"16px", textAlign:"center" }}>
+              <p style={{ fontSize:13, color:C.gris, margin:0 }}>🔒 Completa el día {d.dia-1} primero para desbloquear este.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // PANTALLA PRINCIPAL
   return (
     <div style={{ padding:"20px 20px 90px" }}>
-      <div style={{ background:`linear-gradient(135deg,${C.violeta},#2D1845)`,borderRadius:22,padding:"24px 20px",color:"white",marginBottom:22,textAlign:"center" }}>
-        <p style={{ fontSize:12,color:C.dorado,letterSpacing:2,textTransform:"uppercase",margin:"0 0 6px" }}>Tu transformación</p>
-        <h2 style={{ fontFamily:"Georgia,serif",fontSize:26,fontWeight:300,margin:"0 0 16px" }}>Reto 7 Días 🌺</h2>
-        <div style={{ background:"rgba(255,255,255,0.1)",borderRadius:50,height:8,marginBottom:10 }}>
-          <div style={{ height:"100%",width:`${progress}%`,background:`linear-gradient(90deg,${C.dorado},#F0D080)`,borderRadius:50,transition:"width 0.8s ease" }}/>
+      {/* HERO */}
+      <div style={{ background:`linear-gradient(135deg,${C.carbon},#2D1845)`, borderRadius:22, padding:"24px 20px", color:"white", marginBottom:20, textAlign:"center" }}>
+        <p style={{ fontSize:11, color:C.dorado, letterSpacing:2, textTransform:"uppercase", margin:"0 0 6px" }}>Tu transformación</p>
+        <h2 style={{ fontFamily:"Georgia,serif", fontSize:26, fontWeight:300, margin:"0 0 4px" }}>Reto 21 Días 🦋</h2>
+        <p style={{ fontSize:12, color:"rgba(255,255,255,0.5)", margin:"0 0 16px" }}>Reprogramación mental · Hábitos · Libertad</p>
+        <div style={{ background:"rgba(255,255,255,0.08)", borderRadius:50, height:8, marginBottom:8 }}>
+          <div style={{ height:"100%", width:`${progress}%`, background:`linear-gradient(90deg,${C.dorado},#F0D080)`, borderRadius:50, transition:"width 0.8s ease" }}/>
         </div>
-        <p style={{ fontSize:13,color:"rgba(255,255,255,0.6)",margin:0 }}>{completed.length} de 7 días · {progress}% completado</p>
+        <p style={{ fontSize:13, color:"rgba(255,255,255,0.6)", margin:"0 0 16px" }}>{completed.length} de 21 días · {progress}% completado</p>
+        <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
+          {SEMANAS_RETO.map(s => (
+            <div key={s.semana} style={{ textAlign:"center", opacity: s.semana <= semanaActual ? 1 : 0.4 }}>
+              <div style={{ width:10, height:10, borderRadius:"50%", background: completed.length >= s.semana*7 ? C.dorado : s.semana === semanaActual ? C.violetaClaro : "rgba(255,255,255,0.2)", margin:"0 auto 4px" }}/>
+              <p style={{ fontSize:10, color:"rgba(255,255,255,0.5)", margin:0 }}>S{s.semana}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
-        {RETO_DIAS.map(d => {
+      {/* SEMANA SELECTOR */}
+      <div style={{ display:"flex", gap:8, marginBottom:20 }}>
+        {SEMANAS_RETO.map(s => (
+          <button key={s.semana} onClick={()=>setSemanaActiva(s.semana)} style={{ flex:1, padding:"10px 6px", borderRadius:14, border:`2px solid ${semanaActiva===s.semana?"rgba(91,45,142,0.5)":"rgba(91,45,142,0.1)"}`, background:semanaActiva===s.semana?C.violetaSuave:C.blanco, cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s" }}>
+            <p style={{ fontSize:11, fontWeight:600, color:semanaActiva===s.semana?C.violeta:C.gris, margin:"0 0 2px", textTransform:"uppercase", letterSpacing:0.5 }}>Sem. {s.semana}</p>
+            <p style={{ fontSize:12, color:semanaActiva===s.semana?C.violeta:C.carbon, margin:0, fontWeight:500 }}>{s.titulo}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* INFO DE SEMANA */}
+      <div style={{ background:semanaInfo.color, borderRadius:18, padding:"18px 16px", marginBottom:18, color:"white" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+          <div>
+            <p style={{ fontSize:11, color:"rgba(255,255,255,0.6)", letterSpacing:2, textTransform:"uppercase", margin:"0 0 4px" }}>Semana {semanaActiva}</p>
+            <p style={{ fontFamily:"Georgia,serif", fontSize:20, margin:"0 0 4px" }}>{semanaInfo.titulo}</p>
+            <p style={{ fontSize:12, color:"rgba(255,255,255,0.7)", margin:0 }}>{semanaInfo.subtitulo}</p>
+          </div>
+          <div style={{ textAlign:"center", flexShrink:0 }}>
+            <p style={{ fontSize:18, margin:"0 0 2px" }}>{freq.emoji}</p>
+            <p style={{ fontSize:10, color:"rgba(255,255,255,0.7)", margin:0 }}>{freq.nombre}</p>
+          </div>
+        </div>
+        <p style={{ fontSize:13, color:"rgba(255,255,255,0.75)", lineHeight:1.6, margin:0 }}>{semanaInfo.descripcion}</p>
+      </div>
+
+      {/* DÍAS DE LA SEMANA */}
+      <h3 style={{ fontFamily:"Georgia,serif", fontSize:20, margin:"0 0 14px", fontWeight:400 }}>Días de la semana {semanaActiva}</h3>
+      <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:24 }}>
+        {diasSemana.map(d => {
           const done = completed.includes(d.dia);
           const isNext = !done && completed.length === d.dia - 1;
+          const locked = !done && !isNext && d.dia > completed.length + 1;
           return (
-            <div key={d.dia} style={{ background:C.blanco,borderRadius:18,padding:"18px 16px",border:`2px solid ${done?"rgba(91,45,142,0.35)":isNext?"rgba(201,160,80,0.4)":"rgba(91,45,142,0.07)"}`,opacity:(!done && !isNext && d.dia > completed.length+1)?0.5:1,transition:"all 0.2s" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:14 }}>
-                <div style={{ width:50,height:50,borderRadius:13,background:done?`linear-gradient(135deg,${C.violeta},${C.violetaClaro})`:isNext?`linear-gradient(135deg,${C.dorado},#F0D080)`:"rgba(91,45,142,0.06)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>
-                  {done ? "✅" : d.icon}
-                </div>
-                <div style={{ flex:1 }}>
-                  <p style={{ fontSize:11,color:C.gris,margin:"0 0 3px",textTransform:"uppercase",letterSpacing:1 }}>Día {d.dia}</p>
-                  <p style={{ fontWeight:600,fontSize:14,color:C.carbon,margin:"0 0 4px" }}>{d.titulo}</p>
-                  <p style={{ fontSize:12,color:C.gris,margin:0,lineHeight:1.4 }}>{d.desc}</p>
-                </div>
-                {(isNext || done) && (
-                  <button onClick={()=>complete(d.dia)} disabled={done} style={{ background:done?C.violetaSuave:C.violeta,color:done?C.violeta:"white",border:"none",borderRadius:50,padding:"8px 16px",fontSize:12,cursor:done?"default":"pointer",fontFamily:"inherit",flexShrink:0 }}>
-                    {done?"Hecho ✓":"Completar"}
-                  </button>
-                )}
+            <div key={d.dia} onClick={()=>!locked && setDiaDetalle(d)}
+              style={{ background:C.blanco, borderRadius:16, padding:"16px 14px", display:"flex", alignItems:"center", gap:12, border:`2px solid ${done?"rgba(91,45,142,0.3)":isNext?`${C.dorado}60`:"rgba(91,45,142,0.07)"}`, opacity:locked?0.45:1, cursor:locked?"default":"pointer", transition:"all 0.2s" }}>
+              <div style={{ width:46, height:46, borderRadius:12, background:done?`linear-gradient(135deg,${C.violeta},${C.violetaClaro})`:isNext?`linear-gradient(135deg,${C.dorado},#F0D080)`:"rgba(91,45,142,0.06)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, flexShrink:0 }}>
+                {done ? "✅" : locked ? "🔒" : d.icon}
               </div>
-              {(done || isNext) && (
-                <div style={{ marginTop:12,background:C.violetaSuave,borderRadius:12,padding:"10px 14px" }}>
-                  <p style={{ fontFamily:"Georgia,serif",fontSize:14,fontStyle:"italic",color:C.violeta,margin:0,lineHeight:1.4 }}>"{d.afirmacion}"</p>
-                </div>
+              <div style={{ flex:1 }}>
+                <p style={{ fontSize:10, color:C.gris, margin:"0 0 2px", textTransform:"uppercase", letterSpacing:1 }}>Día {d.dia}</p>
+                <p style={{ fontWeight:600, fontSize:14, color:C.carbon, margin:"0 0 3px" }}>{d.titulo}</p>
+                <p style={{ fontSize:11, color:C.gris, margin:0 }}>{d.habito} · {d.mentor}</p>
+              </div>
+              {(isNext || done) && (
+                <span style={{ fontSize:18, color:done?C.violeta:C.dorado, flexShrink:0 }}>{done?"✓":"›"}</span>
               )}
             </div>
           );
         })}
+      </div>
+
+      {/* HÁBITOS DIARIOS */}
+      <h3 style={{ fontFamily:"Georgia,serif", fontSize:20, margin:"0 0 14px", fontWeight:400 }}>Los 6 hábitos diarios</h3>
+      <div style={{ background:C.blanco, borderRadius:18, padding:"18px 16px", border:`1px solid rgba(91,45,142,0.08)` }}>
+        <p style={{ fontSize:13, color:C.gris, margin:"0 0 14px", lineHeight:1.5 }}>Se repiten los 21 días. La constancia es la clave — no la perfección.</p>
+        {HABITOS_DIARIOS.map((h,i) => (
+          <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"10px 0", borderBottom: i<5?`1px solid rgba(91,45,142,0.06)`:"none" }}>
+            <span style={{ fontSize:22, flexShrink:0, marginTop:2 }}>{h.icon}</span>
+            <div>
+              <p style={{ fontWeight:600, fontSize:13, color:C.carbon, margin:"0 0 3px" }}>{h.titulo}</p>
+              <p style={{ fontSize:12, color:C.gris, margin:"0 0 2px", lineHeight:1.4 }}>{h.desc}</p>
+              <p style={{ fontSize:11, color:C.violetaClaro, margin:0, fontWeight:500 }}>⏱ {h.duracion}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1673,7 +1883,7 @@ function DashboardScreen({ user }) {
         totalUsers: parsedUsers.length,
         activeToday: parsedUsers.filter(u => u.lastPractice && u.lastPractice > oneDayAgo).length,
         activeWeek: parsedUsers.filter(u => u.lastPractice && u.lastPractice > sevenDaysAgo).length,
-        retoCompleted: parsedUsers.filter(u => (u.completedDays||[]).length >= 7).length,
+        retoCompleted: parsedUsers.filter(u => (u.completedDays||[]).length >= 21).length,
         totalPosts: postsData.length,
         postsToday: postsData.filter(p => p.timestamp > oneDayAgo).length,
         totalLikes: postsData.reduce((a,p) => a+(p.likes?.length||0), 0),
@@ -1822,7 +2032,7 @@ export default function FloreceApp() {
   const tabs = [
     { id:"home", icon:"🏠", label:"Inicio" },
     { id:"manifestar", icon:"🌟", label:"Manifestar" },
-    { id:"reto", icon:"🎯", label:"Reto 7D" },
+    { id:"reto", icon:"🦋", label:"Reto 21D" },
     { id:"comunidad", icon:"💜", label:"Comunidad" },
     { id:"perfil", icon:"perfil", label:"Mi Camino" },
     ...(isAdmin ? [{ id:"dashboard", icon:"📊", label:"Admin" }] : []),
