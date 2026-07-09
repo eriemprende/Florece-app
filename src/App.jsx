@@ -155,6 +155,73 @@ async function generateCommunityReply(postText) {
   return data.content?.[0]?.text?.trim() || "Qué hermoso compartir esto. Seguimos creciendo juntas. 💜";
 }
 
+// ─── CHECK-IN EMOCIONAL: IA personalizada según emoción ───
+const EMOCIONES = [
+  { key:"triste", emoji:"😢", label:"Triste", color:"#90CAF9" },
+  { key:"ansiosa", emoji:"😰", label:"Ansiosa", color:"#FFCC80" },
+  { key:"estresada", emoji:"😫", label:"Estresada", color:"#EF9A9A" },
+  { key:"cansada", emoji:"😴", label:"Cansada", color:"#B0BEC5" },
+  { key:"neutral", emoji:"😐", label:"Neutral", color:"#CFD8DC" },
+  { key:"bien", emoji:"🙂", label:"Bien", color:"#A5D6A7" },
+  { key:"feliz", emoji:"😊", label:"Feliz", color:"#FFF59D" },
+  { key:"motivada", emoji:"🔥", label:"Motivada", color:"#FFAB91" },
+];
+
+async function generarPlanEmocional(emocion, textoLibre, nombre) {
+  const sello = Math.random().toString(36).substring(2, 8);
+  const res = await fetch("/api/claude", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1500,
+      messages: [{
+        role: "user",
+        content: `[id:${sello}] Eres la IA de Florece, una app de mentalidad para mujeres y madres emprendedoras hispanohablantes. Tu tono es cálido, empático y empoderador — como una mentora que abraza con palabras.
+
+${nombre} acaba de hacer su check-in emocional de hoy:
+- Emoción seleccionada: ${emocion}
+${textoLibre ? `- Escribió además: "${textoLibre}"` : ""}
+
+Responde SOLO con un objeto JSON válido (sin markdown, sin backticks, sin texto extra) con esta estructura:
+{
+  "mensaje": "Mensaje empático y cálido de 2-3 frases dirigido a ella por su nombre, validando su emoción sin juzgar",
+  "practica": "meditacion | gratitud | manifestaciones | visualizacion",
+  "razon": "1 frase explicando por qué esa práctica le ayudará HOY con esta emoción específica",
+  "manifestacion": "Una manifestación personalizada de 1-2 frases en primera persona diseñada específicamente para transformar esta emoción",
+  "frecuencia": "396 | 432 | 528 | 639 | 741 | 852",
+  "consejo": "Un micro-consejo práctico y accionable para hoy relacionado con su emoción (1-2 frases)"
+}
+
+Guía de práctica según emoción:
+- Tristeza → gratitud (cambia el foco) o meditación 396Hz (libera)
+- Ansiedad → meditación 432Hz (calma el sistema nervioso)
+- Estrés → meditación o visualización 528Hz
+- Cansancio → visualización suave 639Hz (reconecta con el porqué)
+- Neutral/bien → manifestaciones 741Hz (aprovecha para programar)
+- Feliz/motivada → manifestaciones o visualización 852Hz (amplifica y ancla)
+
+IMPORTANTE: Si el texto libre sugiere angustia profunda, desesperanza o crisis, tu "mensaje" debe validar con muchísima calidez Y sugerir amablemente que hablar con un profesional de salud mental o alguien de confianza puede ser un acto de amor propio. Florece acompaña, pero no reemplaza apoyo profesional.`
+      }]
+    })
+  });
+  const data = await res.json();
+  const text = data.content?.[0]?.text?.trim() || "";
+  try {
+    const clean = text.replace(/```json|```/g, "").trim();
+    return JSON.parse(clean);
+  } catch {
+    return {
+      mensaje: `Gracias por compartir cómo te sientes hoy, ${nombre}. Reconocer tu emoción ya es el primer paso para transformarla. 💜`,
+      practica: "meditacion",
+      razon: "La meditación te ayuda a conectar contigo misma y encontrar calma.",
+      manifestacion: "Me permito sentir lo que siento. Y desde aquí, elijo avanzar con amor.",
+      frecuencia: "432",
+      consejo: "Regálate 5 minutos de respiración profunda antes de continuar tu día."
+    };
+  }
+}
+
 // ─── STATIC DATA ───
 const DECK = [
   { text: "Tengo todo lo que necesito para empezar hoy.", cat: "💼 Negocio", mentor: "Margarita Pasos", fav: false },
@@ -905,7 +972,7 @@ Reglas:
 // ═══════════════════════════════════════
 // SCREEN: HOME
 // ═══════════════════════════════════════
-function HomeScreen({ user, onUpdate, showToast, onOpenModal }) {
+function HomeScreen({ user, onUpdate, showToast, onOpenModal, onRepeatCheckIn }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Buenos días" : hour < 18 ? "Buenas tardes" : "Buenas noches";
   const [todayAff, setTodayAff] = useState("");
@@ -1000,6 +1067,34 @@ function HomeScreen({ user, onUpdate, showToast, onOpenModal }) {
           <span style={{ background:"rgba(255,255,255,0.1)",borderRadius:20,padding:"4px 12px",fontSize:12,color:"rgba(255,255,255,0.7)" }}>{user.level||"Semilla 🌱"}</span>
         </div>
       </div>
+
+      {/* PLAN EMOCIONAL DEL DÍA */}
+      {user.lastPlan && user.lastCheckIn === new Date().toDateString() && (
+        <div style={{ background:`linear-gradient(135deg,rgba(91,45,142,0.08),rgba(201,160,80,0.08))`, borderRadius:18, padding:"16px", marginBottom:20, border:`1.5px solid rgba(91,45,142,0.15)` }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+            <p style={{ fontSize:11, color:C.violeta, textTransform:"uppercase", letterSpacing:1.5, margin:0, fontWeight:600 }}>
+              {EMOCIONES.find(e=>e.key===user.lastEmocion)?.emoji || "💜"} Tu plan de hoy
+            </p>
+            <button onClick={onRepeatCheckIn} style={{ background:"none", border:"none", fontSize:11, color:C.gris, cursor:"pointer", fontFamily:"inherit", padding:0, textDecoration:"underline" }}>
+              Cambiar ↻
+            </button>
+          </div>
+          <p style={{ fontFamily:"Georgia,serif", fontSize:15, fontStyle:"italic", color:C.carbon, lineHeight:1.6, margin:"0 0 10px" }}>"{user.lastPlan.manifestacion}"</p>
+          <p style={{ fontSize:12, color:C.gris, margin:0, lineHeight:1.5 }}>💡 {user.lastPlan.consejo}</p>
+        </div>
+      )}
+
+      {/* BOTÓN CHECK-IN SI NO LO HA HECHO */}
+      {(!user.lastCheckIn || user.lastCheckIn !== new Date().toDateString()) && (
+        <button onClick={onRepeatCheckIn} style={{ width:"100%", background:`linear-gradient(135deg,rgba(91,45,142,0.08),rgba(201,160,80,0.1))`, border:`1.5px dashed rgba(91,45,142,0.3)`, borderRadius:18, padding:"16px", marginBottom:20, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:12 }}>
+          <span style={{ fontSize:26 }}>💭</span>
+          <div style={{ textAlign:"left", flex:1 }}>
+            <p style={{ fontSize:14, fontWeight:600, color:C.violeta, margin:"0 0 2px" }}>¿Cómo te sientes hoy?</p>
+            <p style={{ fontSize:12, color:C.gris, margin:0 }}>Cuéntame y creo tu plan personalizado del día</p>
+          </div>
+          <span style={{ fontSize:18, color:C.violeta }}>›</span>
+        </button>
+      )}
 
       <h3 style={{ fontFamily:"Georgia,serif",fontSize:20,margin:"0 0 14px",fontWeight:400 }}>Tu práctica de hoy</h3>
       <div style={{ display:"flex",flexDirection:"column",gap:10,marginBottom:28 }}>
@@ -1810,11 +1905,19 @@ function ComunidadScreen({ user, showToast, onOpenModal }) {
 // ═══════════════════════════════════════
 // SCREEN: PERFIL
 // ═══════════════════════════════════════
-function PerfilScreen({ user, onLogout }) {
+function PerfilScreen({ user, onLogout, onUpdate, showToast }) {
   const [activeMentor, setActiveMentor] = useState(0);
   const completed = user.completedDays?.length || 0;
   const semanaActual = completed < 7 ? 1 : completed < 14 ? 2 : 3;
   const retoPct = Math.round((completed / 21) * 100);
+  const remindersOn = user.emailReminders !== false;
+
+  const toggleReminders = async () => {
+    const updated = { ...user, emailReminders: !remindersOn };
+    await storeSet(`user:${user.email}`, updated);
+    onUpdate?.(updated);
+    showToast?.(remindersOn ? "🔕 Recordatorios desactivados" : "🔔 Recordatorios activados");
+  };
 
   return (
     <div style={{ padding:"20px 20px 90px" }}>
@@ -1864,6 +1967,19 @@ function PerfilScreen({ user, onLogout }) {
         {MENTORES.map((m,i)=>(
           <button key={m} onClick={()=>setActiveMentor(i)} style={{ background:i===activeMentor?C.violeta:C.blanco,color:i===activeMentor?"white":C.violeta,border:`1px solid ${i===activeMentor?C.violeta:"rgba(91,45,142,0.2)"}`,borderRadius:50,padding:"8px 16px",fontSize:12,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,transition:"all 0.2s",fontFamily:"inherit" }}>{m}</button>
         ))}
+      </div>
+
+      {/* RECORDATORIOS */}
+      <h3 style={{ fontFamily:"Georgia,serif",fontSize:20,margin:"0 0 14px",fontWeight:400 }}>Recordatorios 🔔</h3>
+      <div onClick={toggleReminders} style={{ background:C.blanco,borderRadius:18,padding:"16px",marginBottom:24,display:"flex",alignItems:"center",gap:14,cursor:"pointer",border:`1.5px solid ${remindersOn?"rgba(91,45,142,0.25)":"rgba(91,45,142,0.08)"}`,boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+        <span style={{ fontSize:26 }}>{remindersOn?"🔔":"🔕"}</span>
+        <div style={{ flex:1 }}>
+          <p style={{ fontWeight:600,fontSize:14,color:C.carbon,margin:"0 0 3px" }}>Email diario de manifestación</p>
+          <p style={{ fontSize:12,color:C.gris,margin:0,lineHeight:1.4 }}>Cada mañana recibes tu manifestación del día y tu racha para no perderla.</p>
+        </div>
+        <div style={{ width:46,height:26,borderRadius:20,background:remindersOn?C.violeta:"rgba(91,45,142,0.15)",position:"relative",transition:"background 0.2s",flexShrink:0 }}>
+          <div style={{ width:20,height:20,borderRadius:"50%",background:"white",position:"absolute",top:3,left:remindersOn?23:3,transition:"left 0.2s",boxShadow:"0 1px 4px rgba(0,0,0,0.2)" }}/>
+        </div>
       </div>
 
       <button onClick={onLogout} style={{ width:"100%",background:"none",border:`1px solid rgba(91,45,142,0.2)`,borderRadius:50,padding:"13px",fontSize:14,color:C.gris,cursor:"pointer",fontFamily:"inherit" }}>
@@ -1999,6 +2115,137 @@ function DashboardScreen({ user }) {
 }
 
 // ═══════════════════════════════════════
+// SCREEN: CHECK-IN EMOCIONAL
+// ═══════════════════════════════════════
+function CheckInEmocional({ user, onComplete, onSkip }) {
+  const [fase, setFase] = useState("emocion"); // emocion | escribir | cargando | plan
+  const [emocionSel, setEmocionSel] = useState(null);
+  const [textoLibre, setTextoLibre] = useState("");
+  const [plan, setPlan] = useState(null);
+
+  const generarPlan = async () => {
+    setFase("cargando");
+    const p = await generarPlanEmocional(emocionSel.label, textoLibre.trim(), user.name);
+    setPlan(p);
+    setFase("plan");
+  };
+
+  const practicaInfo = {
+    meditacion: { emoji:"🧘‍♀️", nombre:"Meditación de Apertura" },
+    gratitud: { emoji:"✍️", nombre:"Diario de Gratitud" },
+    manifestaciones: { emoji:"🌟", nombre:"Manifestaciones en Voz Alta" },
+    visualizacion: { emoji:"🎯", nombre:"Visualización" },
+  };
+
+  const finalizar = async () => {
+    const hoy = new Date().toDateString();
+    const updated = { ...user, lastCheckIn: hoy, lastEmocion: emocionSel.key, lastPlan: plan };
+    await storeSet(`user:${user.email}`, updated);
+    onComplete(updated, plan);
+  };
+
+  // FASE: PLAN GENERADO
+  if (fase === "plan" && plan) {
+    const pr = practicaInfo[plan.practica] || practicaInfo.meditacion;
+    return (
+      <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,${C.carbon} 0%,#2D1845 100%)`, padding:"40px 24px 40px", display:"flex", flexDirection:"column", justifyContent:"center" }}>
+        <div style={{ maxWidth:400, margin:"0 auto", width:"100%" }}>
+          <div style={{ textAlign:"center", marginBottom:24 }}>
+            <div style={{ fontSize:44, marginBottom:8 }}>{emocionSel.emoji}</div>
+            <p style={{ fontSize:12, color:C.dorado, letterSpacing:2, textTransform:"uppercase", margin:0 }}>Tu plan de hoy</p>
+          </div>
+
+          {/* MENSAJE EMPÁTICO */}
+          <div style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:18, padding:"18px 16px", marginBottom:14 }}>
+            <p style={{ fontFamily:"Georgia,serif", fontSize:16, fontStyle:"italic", color:"rgba(255,255,255,0.9)", lineHeight:1.65, margin:0 }}>{plan.mensaje}</p>
+          </div>
+
+          {/* PRÁCTICA RECOMENDADA */}
+          <div style={{ background:"rgba(201,160,80,0.12)", border:"1px solid rgba(201,160,80,0.35)", borderRadius:18, padding:"16px", marginBottom:14 }}>
+            <p style={{ fontSize:11, color:C.dorado, textTransform:"uppercase", letterSpacing:1.5, margin:"0 0 8px", fontWeight:600 }}>✨ Práctica recomendada para ti</p>
+            <p style={{ fontSize:17, fontWeight:600, color:"white", margin:"0 0 6px" }}>{pr.emoji} {pr.nombre}</p>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.6)", margin:"0 0 8px", lineHeight:1.5 }}>{plan.razon}</p>
+            <span style={{ fontSize:11, background:"rgba(255,255,255,0.1)", color:C.dorado, padding:"3px 10px", borderRadius:20 }}>🎵 {plan.frecuencia} Hz</span>
+          </div>
+
+          {/* MANIFESTACIÓN PERSONALIZADA */}
+          <div style={{ background:`linear-gradient(135deg,rgba(91,45,142,0.4),rgba(139,95,191,0.25))`, border:"1px solid rgba(139,95,191,0.4)", borderRadius:18, padding:"16px", marginBottom:14 }}>
+            <p style={{ fontSize:11, color:"rgba(255,255,255,0.5)", textTransform:"uppercase", letterSpacing:1.5, margin:"0 0 8px", fontWeight:600 }}>🌟 Tu manifestación de hoy</p>
+            <p style={{ fontFamily:"Georgia,serif", fontSize:17, fontStyle:"italic", color:"white", lineHeight:1.6, margin:0 }}>"{plan.manifestacion}"</p>
+          </div>
+
+          {/* CONSEJO */}
+          <div style={{ background:"rgba(255,255,255,0.04)", borderRadius:14, padding:"12px 14px", marginBottom:24 }}>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.65)", margin:0, lineHeight:1.55 }}>💡 {plan.consejo}</p>
+          </div>
+
+          <button onClick={finalizar} style={{ width:"100%", background:`linear-gradient(135deg,${C.dorado},#E8B050)`, color:C.carbon, border:"none", borderRadius:50, padding:"16px", fontSize:15, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+            Comenzar mi día 🌺
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // FASE: CARGANDO
+  if (fase === "cargando") return (
+    <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,${C.carbon},#2D1845)`, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:20, padding:24 }}>
+      <div style={{ fontSize:52 }}>{emocionSel?.emoji}</div>
+      <Cayena size={44} color="white" glow />
+      <p style={{ color:"rgba(255,255,255,0.6)", fontSize:15, fontFamily:"Georgia,serif", fontStyle:"italic", textAlign:"center", lineHeight:1.6 }}>Preparando tu plan personalizado<br/>para hoy...</p>
+    </div>
+  );
+
+  // FASE: ESCRIBIR MÁS (opcional)
+  if (fase === "escribir") return (
+    <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,${C.carbon},#2D1845)`, padding:"50px 24px", display:"flex", flexDirection:"column", justifyContent:"center" }}>
+      <div style={{ maxWidth:400, margin:"0 auto", width:"100%" }}>
+        <div style={{ textAlign:"center", marginBottom:24 }}>
+          <div style={{ fontSize:48, marginBottom:10 }}>{emocionSel.emoji}</div>
+          <h2 style={{ fontFamily:"Georgia,serif", fontSize:24, color:"white", fontWeight:300, margin:"0 0 8px" }}>Te sientes {emocionSel.label.toLowerCase()}</h2>
+          <p style={{ fontSize:14, color:"rgba(255,255,255,0.5)", margin:0, lineHeight:1.5 }}>¿Quieres contarme un poco más? Es opcional, pero me ayuda a acompañarte mejor.</p>
+        </div>
+        <textarea value={textoLibre} onChange={e=>setTextoLibre(e.target.value)} placeholder="Hoy me siento así porque..." rows={4}
+          style={{ width:"100%", background:"rgba(255,255,255,0.06)", border:"1.5px solid rgba(255,255,255,0.15)", borderRadius:16, padding:"16px", color:"white", fontSize:15, fontFamily:"Georgia,serif", fontStyle:"italic", resize:"none", outline:"none", lineHeight:1.6, boxSizing:"border-box", marginBottom:16 }}/>
+        <button onClick={generarPlan} style={{ width:"100%", background:`linear-gradient(135deg,${C.dorado},#E8B050)`, color:C.carbon, border:"none", borderRadius:50, padding:"15px", fontSize:15, fontWeight:600, cursor:"pointer", fontFamily:"inherit", marginBottom:10 }}>
+          Crear mi plan de hoy ✨
+        </button>
+        <button onClick={generarPlan} style={{ width:"100%", background:"none", border:"1px solid rgba(255,255,255,0.2)", borderRadius:50, padding:"13px", fontSize:14, color:"rgba(255,255,255,0.6)", cursor:"pointer", fontFamily:"inherit" }}>
+          Prefiero no escribir, continuar →
+        </button>
+      </div>
+    </div>
+  );
+
+  // FASE: SELECCIÓN DE EMOCIÓN
+  return (
+    <div style={{ minHeight:"100vh", background:`linear-gradient(160deg,${C.carbon},#2D1845)`, padding:"50px 24px", display:"flex", flexDirection:"column", justifyContent:"center" }}>
+      <div style={{ maxWidth:400, margin:"0 auto", width:"100%" }}>
+        <div style={{ textAlign:"center", marginBottom:28 }}>
+          <Cayena size={44} color="white" glow />
+          <h2 style={{ fontFamily:"Georgia,serif", fontSize:26, color:"white", fontWeight:300, margin:"18px 0 8px" }}>Hola, {user.name} 💜</h2>
+          <p style={{ fontSize:15, color:"rgba(255,255,255,0.55)", margin:0, lineHeight:1.5 }}>¿Cómo te sientes hoy?</p>
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:24 }}>
+          {EMOCIONES.map(e => (
+            <button key={e.key} onClick={()=>{ setEmocionSel(e); setFase("escribir"); }}
+              style={{ background: emocionSel?.key===e.key ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.05)", border:`1.5px solid ${emocionSel?.key===e.key ? e.color : "rgba(255,255,255,0.1)"}`, borderRadius:16, padding:"14px 6px", cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s", display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+              <span style={{ fontSize:28 }}>{e.emoji}</span>
+              <span style={{ fontSize:11, color:"rgba(255,255,255,0.7)", fontWeight:500 }}>{e.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <button onClick={onSkip} style={{ width:"100%", background:"none", border:"none", fontSize:13, color:"rgba(255,255,255,0.35)", cursor:"pointer", fontFamily:"inherit", padding:"8px" }}>
+          Saltar por hoy →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════
 // APP ROOT
 // ═══════════════════════════════════════
 export default function FloreceApp() {
@@ -2007,6 +2254,7 @@ export default function FloreceApp() {
   const [tab, setTab] = useState("home");
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState("");
+  const [showCheckIn, setShowCheckIn] = useState(false);
   const toastRef = useRef();
 
   useEffect(() => {
@@ -2017,7 +2265,12 @@ export default function FloreceApp() {
         if (savedEmail) {
           // User profile loaded from Supabase (cloud)
           const u = await storeGet(`user:${savedEmail}`);
-          if (u) setUser(u);
+          if (u) {
+            setUser(u);
+            // Show check-in if not done today
+            const hoy = new Date().toDateString();
+            if (u.lastCheckIn !== hoy) setShowCheckIn(true);
+          }
           else localStorage.removeItem('florece_session'); // email exists but no user — clean up
         }
       } catch {}
@@ -2030,6 +2283,25 @@ export default function FloreceApp() {
     // Save session locally — each device has its own session
     localStorage.setItem('florece_session', u.email);
     setUser(u);
+    // Show check-in if not done today
+    const hoy = new Date().toDateString();
+    if (u.lastCheckIn !== hoy) setShowCheckIn(true);
+  };
+
+  const handleCheckInComplete = (updatedUser, plan) => {
+    setUser(updatedUser);
+    setShowCheckIn(false);
+    setToast("🌺 Tu plan de hoy está listo");
+    clearTimeout(toastRef.current);
+    toastRef.current = setTimeout(()=>setToast(""), 2800);
+  };
+
+  const handleCheckInSkip = async () => {
+    const hoy = new Date().toDateString();
+    const updated = { ...user, lastCheckIn: hoy };
+    await storeSet(`user:${user.email}`, updated);
+    setUser(updated);
+    setShowCheckIn(false);
   };
 
   const handleLogout = async () => {
@@ -2070,6 +2342,8 @@ export default function FloreceApp() {
 
   if (!user) return <SplashScreen onEnter={handleEnter} />;
 
+  if (showCheckIn) return <CheckInEmocional user={user} onComplete={handleCheckInComplete} onSkip={handleCheckInSkip} />;
+
   return (
     <div style={{ minHeight:"100vh",background:C.crema,fontFamily:"'DM Sans',system-ui,sans-serif",color:C.carbon,maxWidth:480,margin:"0 auto",position:"relative" }}>
       <style>{`@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}*{-webkit-tap-highlight-color:transparent}`}</style>
@@ -2086,11 +2360,11 @@ export default function FloreceApp() {
       </nav>
 
       {/* SCREENS */}
-      {tab==="home" && <HomeScreen user={user} onUpdate={updateUser} showToast={showToast} onOpenModal={openModal}/>}
+      {tab==="home" && <HomeScreen user={user} onUpdate={updateUser} showToast={showToast} onOpenModal={openModal} onRepeatCheckIn={()=>setShowCheckIn(true)}/>}
       {tab==="manifestar" && <AffirmationsScreen user={user} onUpdate={updateUser} showToast={showToast}/>}
       {tab==="reto" && <RetoScreen user={user} onUpdate={updateUser} showToast={showToast}/>}
       {tab==="comunidad" && <ComunidadScreen user={user} showToast={showToast} onOpenModal={openModal}/>}
-      {tab==="perfil" && <PerfilScreen user={user} onLogout={handleLogout}/>}
+      {tab==="perfil" && <PerfilScreen user={user} onLogout={handleLogout} onUpdate={updateUser} showToast={showToast}/>}
       {tab==="dashboard" && <DashboardScreen user={user}/>}
 
       {/* TAB BAR */}
